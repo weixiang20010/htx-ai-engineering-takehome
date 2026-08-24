@@ -11,6 +11,7 @@ from src.part1.models import (
     OperatingRevenueTaxes,
     Part1Result,
     TableCellSelection,
+    TaxWithEvidence,
 )
 
 
@@ -53,9 +54,30 @@ class TestCorporateTaxEvidence:
             CorporateTaxEvidence(source_page="five")  # type: ignore[arg-type]
 
 
+class TestTaxWithEvidence:
+    def test_valid(self) -> None:
+        t = TaxWithEvidence(
+            name="Corporate Income Tax",
+            evidence_text="The Corporate Income Tax grew by 17%.",
+        )
+        assert t.name == "Corporate Income Tax"
+
+    def test_missing_name_raises(self) -> None:
+        with pytest.raises(ValidationError):
+            TaxWithEvidence(evidence_text="some text")  # type: ignore[call-arg]
+
+    def test_missing_evidence_raises(self) -> None:
+        with pytest.raises(ValidationError):
+            TaxWithEvidence(name="Corporate Income Tax")  # type: ignore[call-arg]
+
+
 class TestOperatingRevenueTaxes:
     def test_valid(self) -> None:
-        r = OperatingRevenueTaxes(source_pages=[5, 6], taxes=["Corporate Income Tax"])
+        t = TaxWithEvidence(
+            name="Corporate Income Tax",
+            evidence_text="The Corporate Income Tax grew by 17%.",
+        )
+        r = OperatingRevenueTaxes(source_pages=[5, 6], taxes=[t])
         assert len(r.taxes) == 1
 
     def test_empty_taxes_allowed(self) -> None:

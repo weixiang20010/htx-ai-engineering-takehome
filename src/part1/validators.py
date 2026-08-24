@@ -104,23 +104,31 @@ def validate_value_in_evidence(
         )
 
 
-def validate_taxes_in_source(taxes: list[str], source_text: str) -> list[str]:
+def validate_tax_with_evidence(
+    name: str,
+    evidence_text: str,
+    source_text: str,
+) -> None:
     """
-    Filter *taxes* to only those present in *source_text* (whitespace-normalised).
+    Validate a single tax name and its supporting evidence against the source.
+
+    The LLM decides semantically whether something is a tax; this function
+    verifies the evidence chain:
+
+    1. evidence_text exists verbatim in source_text (whitespace-normalised).
+    2. name appears as a substring within evidence_text.
 
     Raises
     ------
     ExtractionValidationError
-        If none of the returned tax names are supported by the source.
+        If either check fails.
     """
-    norm_src = _norm_ws(source_text)
-    supported = [t for t in taxes if _norm_ws(t) in norm_src]
-    if not supported:
-        raise ExtractionValidationError(
-            "No returned tax names were found in the source text. "
-            f"Returned: {taxes}"
-        )
-    return supported
+    validate_evidence_in_source(
+        evidence_text, source_text, field_name=f"tax:{name}"
+    )
+    validate_value_in_evidence(
+        name, evidence_text, field_name=f"tax_name:{name}"
+    )
 
 
 # ---------------------------------------------------------------------------

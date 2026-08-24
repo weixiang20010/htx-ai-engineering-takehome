@@ -30,8 +30,8 @@ coverage.xml
 .ipynb_checkpoints/
 notebooks/.ipynb_checkpoints/
 
-# Outputs (may contain extracted financial data — exclude from history)
-outputs/
+# Outputs (pipeline results committed for reproducibility — see outputs/)
+# outputs/
 
 # MyPy
 .mypy_cache/

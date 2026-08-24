@@ -43,16 +43,29 @@ class CorporateTaxEvidence(BaseModel):
     )
 
 
+class TaxWithEvidence(BaseModel):
+    """A single tax name with verbatim source evidence for downstream validation."""
+
+    name: str = Field(
+        description="Tax name exactly as it appears in the source document"
+    )
+    evidence_text: str = Field(
+        description=(
+            "Verbatim sentence from the source document that explicitly names this tax. "
+            "The tax name must appear as a literal substring of this sentence."
+        )
+    )
+
+
 class OperatingRevenueTaxes(BaseModel):
     """LLM-extracted list of taxes from the Operating Revenue section."""
 
-    source_pages: list[int] = Field(
-        description="Page numbers that were searched"
-    )
-    taxes: list[str] = Field(
+    source_pages: list[int] = Field(description="Page numbers that were searched")
+    taxes: list[TaxWithEvidence] = Field(
         description=(
-            "Tax or revenue-category names exactly as they appear in the source document. "
-            "Do not add categories based on general knowledge."
+            "Taxes and tax categories identified in the Operating Revenue section. "
+            "Each entry must be an actual tax (income tax, sales tax, excise tax, etc.), "
+            "NOT a fee, premium, charge, or other non-tax revenue source."
         )
     )
 

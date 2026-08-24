@@ -1,0 +1,16 @@
+{
+  "corporate_income_tax_2024": 28.4,
+  "corporate_income_tax_yoy_pct_2024": 17.0,
+  "total_top_ups_2024": 20352.0,
+  "operating_revenue_taxes": [
+    "Corporate Income Tax",
+    "Other Taxes",
+    "Water Conservation Tax",
+    "Annual Tonnage Tax",
+    "Assets Taxes",
+    "Betting Taxes",
+    "Casino Taxes",
+    "Goods and Services Tax"
+  ],
+  "latest_actual_fiscal_position_billions": 1.72
+}

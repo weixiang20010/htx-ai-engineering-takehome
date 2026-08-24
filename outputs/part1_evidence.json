@@ -1,0 +1,52 @@
+[
+  {
+    "field_name": "corporate_income_tax_2024",
+    "source_page": 5,
+    "source_evidence": "Corporate Income Tax collections are revised to $28.4 billion, which is $4.1 billion (17.0%) higher than the Estimated FY2023 figure due to stronger-than-expected economic growth in 2022.",
+    "raw_value": "$28.4 billion",
+    "source_unit": "billion",
+    "normalized_value": 28.4,
+    "validation_passed": true,
+    "validation_note": ""
+  },
+  {
+    "field_name": "corporate_income_tax_yoy_pct_2024",
+    "source_page": 5,
+    "source_evidence": "Corporate Income Tax collections are revised to $28.4 billion, which is $4.1 billion (17.0%) higher than the Estimated FY2023 figure due to stronger-than-expected economic growth in 2022.",
+    "raw_value": "17.0%",
+    "source_unit": "%",
+    "normalized_value": 17.0,
+    "validation_passed": true,
+    "validation_note": ""
+  },
+  {
+    "field_name": "operating_revenue_taxes",
+    "source_page": 5,
+    "source_evidence": "Pages 5–6 Operating Revenue section",
+    "raw_value": "['Corporate Income Tax', 'Other Taxes', 'Water Conservation Tax', 'Annual Tonnage Tax', 'Assets Taxes', 'Betting Taxes', 'Casino Taxes', 'Goods and Services Tax']",
+    "source_unit": "",
+    "normalized_value": null,
+    "validation_passed": true,
+    "validation_note": "Dropped 1 item(s) not grounded in source: ['Personal Income Tax']"
+  },
+  {
+    "field_name": "latest_actual_fiscal_position_billions",
+    "source_page": 8,
+    "source_evidence": "Table: Fiscal Position in FY2022 and FY2023 | row='OVERALL FISCAL POSITION' | col='Actual FY2022'",
+    "raw_value": "1.72",
+    "source_unit": "billion",
+    "normalized_value": 1.72,
+    "validation_passed": true,
+    "validation_note": ""
+  },
+  {
+    "field_name": "total_top_ups_2024",
+    "source_page": 20,
+    "source_evidence": "Table: Top-ups to Endowment and Trust Funds in FY2024 | row='Total' | col='Estimated FY2024'",
+    "raw_value": "20,352",
+    "source_unit": "$ million",
+    "normalized_value": 20352.0,
+    "validation_passed": true,
+    "validation_note": ""
+  }
+]

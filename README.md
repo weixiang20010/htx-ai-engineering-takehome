@@ -25,7 +25,7 @@ Outputs:
 | Variable | Description |
 |----------|-------------|
 | `GEMINI_API_KEY` | Google Gemini API key |
-| `GEMINI_MODEL` | Model name (default: `gemini-2.5-flash`) |
+| `GEMINI_MODEL` | Model name (default: `gemini-3.6-flash`) |
 | `SOURCE_PDF` | Path to the data-source PDF (default: `data/fy2024_analysis_of_revenue_and_expenditure.pdf`) |
 
 ---
@@ -135,7 +135,7 @@ All improved prompts share a grounding preamble that instructs the model to:
 
 ## Naive vs improved prompt comparison
 
-The notebook `notebooks/part1_demo.ipynb` demonstrates both prompts side by side.  In brief:
+The standalone script `scripts/compare_prompts.py` demonstrates both prompts side by side.
 
 | Dimension | Naive prompt | Improved prompt |
 |-----------|-------------|-----------------|
@@ -159,9 +159,9 @@ src/part1/
   prompts.py       — ChatPromptTemplate instances
   extractor.py     — LangChain + Gemini orchestration
 
-scripts/run_part1.py  — entry point
-tests/                — 95 unit + integration tests
-notebooks/part1_demo.ipynb
+scripts/run_part1.py       — entry point
+scripts/compare_prompts.py — optional naive vs improved demo
+tests/                — unit + integration tests
 outputs/              — part1_result.json, part1_evidence.json
 ```
 

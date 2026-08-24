@@ -103,20 +103,28 @@ OPERATING_REVENUE_TAXES_IMPROVED = ChatPromptTemplate.from_messages(
             "system",
             f"""{_GROUNDING_INSTRUCTIONS}
 
-You are identifying tax and revenue-category names from a specific section of \
-a government budget document.
+You are identifying taxes and tax categories from a specific section of a \
+government budget document.
 
 OUTPUT SCHEMA:
-  source_pages : list of page numbers that were searched
-  taxes        : list of tax / revenue-category names, exactly as written in \
-the source
+  source_pages : list of page numbers searched
+  taxes        : list of objects, each containing:
+    name           : tax name exactly as it appears in the source
+    evidence_text  : verbatim sentence from the source that names this tax
 
-IMPORTANT:
-- Only include names that are explicitly stated in the "Operating Revenue" \
-section.
-- Do NOT add tax categories based on general knowledge.
-- Return the name exactly as it appears in the text (preserve capitalisation \
-and punctuation).""",
+CLASSIFICATION RULES — apply strictly:
+  INCLUDE items that are explicitly labelled a "tax" in the document, including:
+    income taxes, consumption taxes, excise duties, asset taxes,
+    gaming/betting taxes, stamp duties, carbon taxes, withholding taxes,
+    and items explicitly grouped under a "tax" heading in the document.
+
+  EXCLUDE non-tax revenue items such as fees, premiums, charges, or quotas.
+    For example: "Vehicle Quota Premiums" are quota fees — NOT a tax — and
+    must NOT appear in your output.
+
+  Do NOT add taxes based on general knowledge.
+  evidence_text for each item must be copied verbatim from the document.
+  The tax name must appear as a literal substring of its evidence_text.""",
         ),
         (
             "human",
@@ -124,9 +132,11 @@ and punctuation).""",
 {context}
 
 TASK:
-List every type of tax or revenue category explicitly named within the \
-"Operating Revenue" section.
-Do not include section headers, footnote references, or non-tax items.""",
+List every TAX or TAX CATEGORY explicitly named within the "Operating Revenue" \
+section.
+For each, return the exact name and a verbatim supporting sentence.
+
+Do NOT include "Vehicle Quota Premiums" or any other fees, charges, or premiums.""",
         ),
     ]
 )

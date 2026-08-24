@@ -31,6 +31,7 @@ from .models import (
     OperatingRevenueTaxes,
     Part1Result,
     TableCellSelection,
+    TaxWithEvidence,
 )
 from .normalizers import normalize_to_float
 from .pdf_parser import (
@@ -41,7 +42,6 @@ from .pdf_parser import (
 )
 from .prompts import (
     CORPORATE_TAX_IMPROVED,
-    CORPORATE_TAX_NAIVE,
     FISCAL_POSITION_IMPROVED,
     OPERATING_REVENUE_TAXES_IMPROVED,
     TOP_UPS_IMPROVED,
@@ -50,7 +50,7 @@ from .validators import (
     ExtractionValidationError,
     validate_evidence_in_source,
     validate_table_cell,
-    validate_taxes_in_source,
+    validate_tax_with_evidence,
     validate_value_in_evidence,
 )
 
@@ -263,35 +263,43 @@ def extract_operating_revenue_taxes(
     )
     result: OperatingRevenueTaxes = chain.invoke({"context": combined})
 
-    logger.debug("LLM taxes: %s", result.taxes)
+    logger.debug(
+        "LLM taxes (pre-validation): %s", [t.name for t in result.taxes]
+    )
 
-    # --- Validate each tax name against source ---
-    validated_taxes = validate_taxes_in_source(result.taxes, combined)
-    unsupported = [t for t in result.taxes if t not in validated_taxes]
-    if unsupported:
-        logger.warning(
-            "Extraction B: %d tax name(s) not found in source and dropped: %s",
-            len(unsupported),
-            unsupported,
+    # The LLM decides semantically what counts as a tax.
+    # Python verifies: evidence exists in source, name exists in evidence.
+    validated: list[str] = []
+    dropped: list[str] = []
+    for tax in result.taxes:
+        try:
+            validate_tax_with_evidence(tax.name, tax.evidence_text, combined)
+            validated.append(tax.name)
+        except ExtractionValidationError as exc:
+            logger.warning("Dropping tax %r — evidence not grounded: %s", tax.name, exc)
+            dropped.append(tax.name)
+
+    if not validated:
+        raise ExtractionValidationError(
+            "No tax names passed evidence validation. Check the prompt and source."
         )
 
-    logger.info("Extraction B complete: %d taxes validated", len(validated_taxes))
+    logger.info("Extraction B complete: %d taxes validated", len(validated))
 
     ev = FieldEvidence(
         field_name="operating_revenue_taxes",
         source_page=5,
-        source_evidence=f"Pages 5–6 Operating Revenue section",
-        raw_value=str(validated_taxes),
+        source_evidence="Pages 5–6 Operating Revenue section",
+        raw_value=str(validated),
         source_unit="",
         normalized_value=None,
         validation_passed=True,
         validation_note=(
-            f"Dropped {len(unsupported)} unverified name(s): {unsupported}"
-            if unsupported
-            else ""
+            f"Dropped {len(dropped)} item(s) not grounded in source: {dropped}"
+            if dropped else ""
         ),
     )
-    return validated_taxes, ev
+    return validated, ev
 
 
 # ---------------------------------------------------------------------------
@@ -375,90 +383,6 @@ def extract_total_top_ups(
         validation_passed=True,
     )
     return num, ev
-
-
-# ---------------------------------------------------------------------------
-# Naive vs improved demonstration
-# ---------------------------------------------------------------------------
-
-
-def demonstrate_naive_vs_improved(
-    page5_text: str,
-    llm: ChatGoogleGenerativeAI,
-) -> dict[str, object]:
-    """
-    Run both the naive and improved prompts against page 5 text and return
-    a side-by-side comparison dict.
-
-    The naive prompt returns free-form prose.  The improved prompt returns
-    a structured CorporateTaxEvidence with evidence grounding.  This comparison
-    illustrates why the improved approach is safer for production use.
-    """
-    logger.info("Demonstration: naive vs improved prompt comparison")
-
-    # Naive — plain string response
-    naive_chain = CORPORATE_TAX_NAIVE | llm
-    naive_response = naive_chain.invoke({"context": page5_text})
-    naive_text: str = getattr(naive_response, "content", str(naive_response))
-
-    # Improved — structured + validated
-    improved_chain = CORPORATE_TAX_IMPROVED | llm.with_structured_output(
-        CorporateTaxEvidence
-    )
-    improved_result: CorporateTaxEvidence = improved_chain.invoke(
-        {"context": page5_text}
-    )
-
-    # Attempt to validate improved output
-    improved_validated = False
-    improved_note = ""
-    try:
-        if improved_result.evidence_text:
-            validate_evidence_in_source(
-                improved_result.evidence_text,
-                page5_text,
-                field_name="demo_evidence",
-            )
-            improved_validated = True
-    except ExtractionValidationError as exc:
-        improved_note = str(exc)
-
-    return {
-        "naive": {
-            "prompt": "Extract the Corporate Income Tax information from this text.",
-            "response_type": "free-form text",
-            "response": naive_text,
-            "structured": False,
-            "evidence_verified": False,
-            "notes": (
-                "Free-form prose — no schema, no evidence grounding, "
-                "no deterministic validation possible."
-            ),
-        },
-        "improved": {
-            "prompt": "Grounded structured prompt (see prompts.py CORPORATE_TAX_IMPROVED)",
-            "response_type": "CorporateTaxEvidence (Pydantic)",
-            "response": improved_result.model_dump(),
-            "structured": True,
-            "evidence_verified": improved_validated,
-            "notes": (
-                "Structured output enables deterministic validation of evidence. "
-                + (
-                    "Evidence verified in source."
-                    if improved_validated
-                    else f"Validation note: {improved_note}"
-                )
-            ),
-        },
-        "comparison": {
-            "grounding": "Improved prompt restricts the model to the supplied context; naive allows hallucination.",
-            "structured_output": "Improved uses Pydantic schema; naive returns unstructured text.",
-            "evidence": "Improved requires verbatim source evidence; naive provides none.",
-            "missing_value_handling": "Improved instructs the model to return null if evidence is absent; naive may fabricate.",
-            "deterministic_validation": "Improved output can be programmatically verified; naive cannot.",
-            "hallucination_resistance": "Improved combines grounding + evidence + deterministic validation; naive has none of these.",
-        },
-    }
 
 
 # ---------------------------------------------------------------------------

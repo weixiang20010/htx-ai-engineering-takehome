@@ -7,7 +7,7 @@ from src.part1.validators import (
     ExtractionValidationError,
     validate_evidence_in_source,
     validate_table_cell,
-    validate_taxes_in_source,
+    validate_tax_with_evidence,
     validate_value_in_evidence,
 )
 
@@ -48,25 +48,38 @@ class TestValidateValueInEvidence:
             validate_value_in_evidence("", "some evidence text")
 
 
-class TestValidateTaxesInSource:
+class TestValidateTaxWithEvidence:
     SOURCE = (
         "Collections from Corporate Income Tax, Personal Income Tax, "
         "Assets Taxes, Goods and Services Tax, and Betting Taxes."
     )
 
-    def test_all_present_passes(self) -> None:
-        taxes = ["Corporate Income Tax", "Personal Income Tax"]
-        result = validate_taxes_in_source(taxes, self.SOURCE)
-        assert set(result) == {"Corporate Income Tax", "Personal Income Tax"}
+    def test_valid_tax_passes(self) -> None:
+        validate_tax_with_evidence(
+            "Corporate Income Tax",
+            "Collections from Corporate Income Tax, Personal Income Tax",
+            self.SOURCE,
+        )
 
-    def test_partial_supported_returns_subset(self) -> None:
-        taxes = ["Corporate Income Tax", "Invented Tax"]
-        result = validate_taxes_in_source(taxes, self.SOURCE)
-        assert result == ["Corporate Income Tax"]
-
-    def test_none_supported_raises(self) -> None:
+    def test_name_not_in_evidence_raises(self) -> None:
         with pytest.raises(ExtractionValidationError):
-            validate_taxes_in_source(["Invented Tax", "Another Fake Tax"], self.SOURCE)
+            validate_tax_with_evidence(
+                "Invented Tax",
+                "Collections from Corporate Income Tax",
+                self.SOURCE,
+            )
+
+    def test_evidence_not_in_source_raises(self) -> None:
+        with pytest.raises(ExtractionValidationError):
+            validate_tax_with_evidence(
+                "Corporate Income Tax",
+                "This sentence is not in the source at all.",
+                self.SOURCE,
+            )
+
+    def test_empty_evidence_raises(self) -> None:
+        with pytest.raises(ExtractionValidationError):
+            validate_tax_with_evidence("Corporate Income Tax", "", self.SOURCE)
 
 
 class TestValidateTableCell:
