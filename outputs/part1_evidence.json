@@ -7,7 +7,8 @@
     "source_unit": "billion",
     "normalized_value": 28.4,
     "validation_passed": true,
-    "validation_note": ""
+    "validation_note": "",
+    "per_item_evidence": null
   },
   {
     "field_name": "corporate_income_tax_yoy_pct_2024",
@@ -17,7 +18,8 @@
     "source_unit": "%",
     "normalized_value": 17.0,
     "validation_passed": true,
-    "validation_note": ""
+    "validation_note": "",
+    "per_item_evidence": null
   },
   {
     "field_name": "operating_revenue_taxes",
@@ -27,7 +29,45 @@
     "source_unit": "",
     "normalized_value": null,
     "validation_passed": true,
-    "validation_note": ""
+    "validation_note": "",
+    "per_item_evidence": [
+      {
+        "name": "Corporate Income Tax",
+        "evidence_text": "Corporate Income Tax collections are revised to $28.4 billion, which is $4.1 billion (17.0%) higher than the Estimated FY2023 figure due to stronger-than-expected economic growth in 2022."
+      },
+      {
+        "name": "Other Taxes",
+        "evidence_text": "Collections from Other Taxes, which include the Foreign Worker Levy, Water Conservation Tax, Land Betterment Charge, and Annual Tonnage Tax, are revised to $8.8 billion, which is $2.1 billion (32.3%) higher than the Estimated FY2023 figure."
+      },
+      {
+        "name": "Water Conservation Tax",
+        "evidence_text": "Collections from Other Taxes, which include the Foreign Worker Levy, Water Conservation Tax, Land Betterment Charge, and Annual Tonnage Tax, are revised to $8.8 billion, which is $2.1 billion (32.3%) higher than the Estimated FY2023 figure."
+      },
+      {
+        "name": "Annual Tonnage Tax",
+        "evidence_text": "Collections from Other Taxes, which include the Foreign Worker Levy, Water Conservation Tax, Land Betterment Charge, and Annual Tonnage Tax, are revised to $8.8 billion, which is $2.1 billion (32.3%) higher than the Estimated FY2023 figure."
+      },
+      {
+        "name": "Personal Income Tax",
+        "evidence_text": "Personal Income Tax collections are revised to $17.5 billion, which is $0.7 billion (4.1%) higher than the Estimated FY2023 figure due to stronger-than-expected nominal wage growth in 2022."
+      },
+      {
+        "name": "Assets Taxes",
+        "evidence_text": "Assets Taxes collections are revised to $5.9 billion, which is $0.4 billion (6.7%) higher than the Estimated FY2023 figure due to upward adjustments to Annual Values for residential properties."
+      },
+      {
+        "name": "Betting Taxes",
+        "evidence_text": "Betting Taxes collections are revised to $3.2 billion, which is $0.3 billion (10.8%) higher than the Estimated FY2023 figure due to stronger-than-expected collections for Casino Taxes."
+      },
+      {
+        "name": "Casino Taxes",
+        "evidence_text": "Betting Taxes collections are revised to $3.2 billion, which is $0.3 billion (10.8%) higher than the Estimated FY2023 figure due to stronger-than-expected collections for Casino Taxes."
+      },
+      {
+        "name": "Goods and Services Tax",
+        "evidence_text": "Goods and Services Tax collections are revised to $16.4 billion, which is $1.0 billion (5.8%) lower than the Estimated FY2023 figure due to weaker imports."
+      }
+    ]
   },
   {
     "field_name": "latest_actual_fiscal_position_billions",
@@ -37,7 +77,8 @@
     "source_unit": "billion",
     "normalized_value": 1.72,
     "validation_passed": true,
-    "validation_note": ""
+    "validation_note": "",
+    "per_item_evidence": null
   },
   {
     "field_name": "total_top_ups_2024",
@@ -47,6 +88,7 @@
     "source_unit": "$ million",
     "normalized_value": 20352.0,
     "validation_passed": true,
-    "validation_note": ""
+    "validation_note": "",
+    "per_item_evidence": null
   }
 ]

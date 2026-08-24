@@ -93,6 +93,8 @@ class FieldEvidence(BaseModel):
     normalized_value: float | None
     validation_passed: bool
     validation_note: str = ""
+    # Per-item evidence for list fields (e.g. operating_revenue_taxes)
+    per_item_evidence: list[dict[str, str]] | None = None
 
 
 class Part1Result(BaseModel):

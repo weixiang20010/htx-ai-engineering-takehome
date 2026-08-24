@@ -197,6 +197,22 @@ def _strip_page_footers(text: str) -> str:
     return re.sub(r"\nMINISTRY OF FINANCE\s+\d+\s*", " ", text).strip()
 
 
+def extract_operating_revenue_section(page5_text: str, page6_text: str) -> str:
+    """
+    Deterministically isolate the '1.2 Operating Revenue' section from pages 5–6.
+
+    Narrows the LLM context to exactly the section HTX referenced, reducing
+    noise from adjacent sections.  Falls back to the full combined text if the
+    section boundaries cannot be located.
+    """
+    combined = page5_text + "\n" + page6_text
+    start = combined.find("1.2 Operating Revenue")
+    end = combined.find("1.3 Total Expenditure")
+    if start != -1 and end != -1 and end > start:
+        return combined[start:end].strip()
+    return combined
+
+
 def get_pages_text(pdf_path: str | Path, printed_pages: list[int]) -> dict[int, str]:
     """
     Return a mapping of ``{printed_page: text}`` for the requested pages.

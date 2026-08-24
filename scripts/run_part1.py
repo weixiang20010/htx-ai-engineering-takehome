@@ -54,7 +54,7 @@ def main() -> None:
         logger.error("%s", exc)
         sys.exit(1)
 
-    logger.info("Using model: %s", os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"))
+    logger.info("Using model: %s", os.environ.get("GEMINI_MODEL", "gemini-3.6-flash"))
     logger.info("Source PDF : %s", pdf_path.resolve())
 
     # --- Run pipeline ---

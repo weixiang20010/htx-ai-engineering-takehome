@@ -36,6 +36,7 @@ from .models import (
 from .normalizers import normalize_to_float
 from .pdf_parser import (
     ParsedTable,
+    extract_operating_revenue_section,
     extract_table_page20,
     extract_table_page8,
     get_pages_text,
@@ -81,7 +82,6 @@ def build_llm(
     return ChatGoogleGenerativeAI(
         model=resolved_model,
         google_api_key=resolved_key,
-        temperature=0,
     )
 
 
@@ -257,11 +257,12 @@ def extract_operating_revenue_taxes(
     """
     logger.info("Extraction B: Operating Revenue taxes (pages 5–6)")
 
-    combined = page5_text + "\n" + page6_text
+    section = extract_operating_revenue_section(page5_text, page6_text)
+    combined = page5_text + "\n" + page6_text  # kept for grounding validation
     chain = OPERATING_REVENUE_TAXES_IMPROVED | llm.with_structured_output(
         OperatingRevenueTaxes
     )
-    result: OperatingRevenueTaxes = chain.invoke({"context": combined})
+    result: OperatingRevenueTaxes = chain.invoke({"context": section})
 
     logger.debug(
         "LLM taxes (pre-validation): %s", [t.name for t in result.taxes]
@@ -297,8 +298,11 @@ def extract_operating_revenue_taxes(
         validation_note=(
             f"Dropped {len(dropped)} item(s) not grounded in source: {dropped}"
             if dropped else ""
-        ),
-    )
+        ),        per_item_evidence=[
+            {"name": tax.name, "evidence_text": tax.evidence_text}
+            for tax in result.taxes
+            if tax.name in validated
+        ],    )
     return validated, ev
 
 

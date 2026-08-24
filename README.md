@@ -6,8 +6,22 @@
 
 ## Quick start
 
+**Prerequisites:** Python 3.14, [uv](https://docs.astral.sh/uv/) (or any virtualenv tool)
+
 ```bash
-cp .env.example .env          # fill in GEMINI_API_KEY
+# 1. Create and activate a virtual environment
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+# source .venv/bin/activate   # macOS / Linux
+
+# 2. Install the package and all dependencies
+pip install -e ".[dev]"
+
+# 3. Configure secrets
+cp .env.example .env
+# Edit .env — set GEMINI_API_KEY to your Google AI Studio key
+
+# 4. Run the extraction pipeline
 python scripts/run_part1.py
 ```
 
@@ -29,6 +43,17 @@ Outputs:
 | `SOURCE_PDF` | Path to the data-source PDF (default: `data/fy2024_analysis_of_revenue_and_expenditure.pdf`) |
 
 ---
+
+## Library choices
+
+| Library | Reason |
+|---------|--------|
+| `pdfplumber` | Lightweight page-level text and table extraction; no OCR or CV overhead; output inspected page-by-page before writing any parser code |
+| `langchain` + `langchain-google-genai` | Structured output via `llm.with_structured_output(PydanticModel)` keeps LLM responses schema-validated; prompt templates are version-controlled separately from orchestration logic |
+| `google-generativeai` (Gemini) | Free-tier availability; strong instruction-following for grounded extraction; configurable via `GEMINI_MODEL` env var |
+| `pydantic` | Runtime-validated schemas for every LLM output and final result; field-level documentation doubles as prompt guidance |
+| `python-dotenv` | Keeps secrets out of source code; standard `.env` convention |
+| `pytest` | Parametrised unit tests for all deterministic components; `@pytest.mark.integration` separates API-dependent tests |
 
 ## Parser choice — why pdfplumber
 
@@ -106,7 +131,7 @@ Four targeted extraction tasks, each using only the relevant page content:
 | Task | Pages | LLM output | Python action |
 |------|-------|------------|---------------|
 | A | 5 | `CorporateTaxEvidence` (evidence + sub-strings) | verify evidence in source; verify sub-strings in evidence; normalize |
-| B | 5–6 | `OperatingRevenueTaxes` (tax name list) | filter: keep only names present in source |
+| B | 5–6 | `OperatingRevenueTaxes` (list of `TaxWithEvidence`) | per-item: verify evidence in source; verify name in evidence; normalize |
 | C | 8 | `TableCellSelection` (row label + column label) | retrieve cell from `ParsedTable`; normalize |
 | D | 20 | `TableCellSelection` (row label + column label) | retrieve cell from `ParsedTable`; normalize |
 
@@ -126,7 +151,7 @@ All improved prompts share a grounding preamble that instructs the model to:
 |------|------------|
 | LLM invents a number | Numbers come from `ParsedTable.get_cell()` or raw text, not from LLM-generated floats |
 | LLM paraphrases evidence | `validate_evidence_in_source()` performs verbatim (whitespace-normalised) lookup |
-| LLM returns an unsupported tax name | `validate_taxes_in_source()` filters the returned list against the source text |
+| LLM returns an unsupported tax name | `validate_tax_with_evidence()` checks each tax's evidence exists in source and the name appears in that evidence |
 | LLM returns a non-existent row/column | `ParsedTable.get_cell()` raises `ExtractionValidationError` |
 | LLM omits evidence | Extraction raises `ExtractionValidationError`; the field is `None` in the audit trail, not silently `0.0` |
 | Unit confusion | `NormalizedNumber.source_unit` is preserved alongside `normalized_value` throughout the pipeline |
@@ -170,11 +195,11 @@ outputs/              — part1_result.json, part1_evidence.json
 ## Running tests
 
 ```bash
-# All tests (integration tests require GEMINI_API_KEY)
-python -m pytest tests/ -v
-
-# Unit tests only (no API key needed)
+# Unit tests only — no API key required
 python -m pytest tests/ -m "not integration" -v
+
+# Include the optional end-to-end smoke test (requires GEMINI_API_KEY)
+python -m pytest tests/ -v
 ```
 
 ---
@@ -183,11 +208,17 @@ python -m pytest tests/ -m "not integration" -v
 
 ### Year labelling mismatch (fields 1 and 2)
 
-The assessment asks for *"Corporate Income Tax in 2024"* and specifies **page 5** as the source.  However, page 5 of the source document is within **Section 01 — Update on Financial Year 2023**, which reports the *Revised FY2023* figures.  The Corporate Income Tax amount shown on page 5 is the revised FY2023 collection ($28.4 billion, 17.0% above the FY2023 estimate).
+The assessment asks for *"Corporate Income Tax in 2024"* and specifies **page 5** as the source.  However, page 5 of the source document is within **Section 01 — Update on Financial Year 2023**, which reports the *Revised FY2023* figures.  The Corporate Income Tax amount shown on page 5 is the revised FY2023 collection ($28.4 billion).
 
-Per the assessment instruction *"treat the explicitly specified source page as authoritative"*, the values are extracted from page 5 as-is.  The assumption is documented here and in `outputs/part1_evidence.json`.
+I chose to treat the explicitly specified source page as authoritative: the values are extracted from page 5 as-is.  This assumption is documented here and in `outputs/part1_evidence.json`.
 
 The source document was **not modified** to reconcile this discrepancy.
+
+### YoY percentage mismatch (field 2)
+
+The assessment asks for the *"YOY percentage difference of Corp Income Tax in 2024"*.  However, page 5 describes 17.0% as the increase from the **Estimated FY2023** figure to the **Revised FY2023** figure — not a calendar year-on-year comparison.
+
+Since the assessment explicitly references page 5 and 17.0% is the only percentage figure associated with Corporate Income Tax on that page, this value is returned without reinterpretation.  The distinction is noted here for transparency.
 
 ### Table 1.1 "Latest Actual" column
 
