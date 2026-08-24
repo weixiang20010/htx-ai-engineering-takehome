@@ -192,6 +192,11 @@ def get_page_text(pdf_path: str | Path, printed_page: int) -> str:
         return pdf.pages[idx].extract_text() or ""
 
 
+def _strip_page_footers(text: str) -> str:
+    """Remove 'MINISTRY OF FINANCE <n>' footer lines that interrupt cross-page text flow."""
+    return re.sub(r"\nMINISTRY OF FINANCE\s+\d+\s*", " ", text).strip()
+
+
 def get_pages_text(pdf_path: str | Path, printed_pages: list[int]) -> dict[int, str]:
     """
     Return a mapping of ``{printed_page: text}`` for the requested pages.
@@ -202,7 +207,8 @@ def get_pages_text(pdf_path: str | Path, printed_pages: list[int]) -> dict[int, 
     with pdfplumber.open(str(pdf_path)) as pdf:
         for pn in printed_pages:
             idx = page_index(pn)
-            result[pn] = pdf.pages[idx].extract_text() or ""
+            raw = pdf.pages[idx].extract_text() or ""
+            result[pn] = _strip_page_footers(raw)
     return result
 
 

@@ -23,11 +23,11 @@
     "field_name": "operating_revenue_taxes",
     "source_page": 5,
     "source_evidence": "Pages 5–6 Operating Revenue section",
-    "raw_value": "['Corporate Income Tax', 'Other Taxes', 'Water Conservation Tax', 'Annual Tonnage Tax', 'Assets Taxes', 'Betting Taxes', 'Casino Taxes', 'Goods and Services Tax']",
+    "raw_value": "['Corporate Income Tax', 'Other Taxes', 'Water Conservation Tax', 'Annual Tonnage Tax', 'Personal Income Tax', 'Assets Taxes', 'Betting Taxes', 'Casino Taxes', 'Goods and Services Tax']",
     "source_unit": "",
     "normalized_value": null,
     "validation_passed": true,
-    "validation_note": "Dropped 1 item(s) not grounded in source: ['Personal Income Tax']"
+    "validation_note": ""
   },
   {
     "field_name": "latest_actual_fiscal_position_billions",
