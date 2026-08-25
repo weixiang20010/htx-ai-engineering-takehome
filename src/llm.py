@@ -95,9 +95,9 @@ def build_reasoning_llm_pair() -> tuple[ChatGoogleGenerativeAI, ChatGoogleGenera
     Return the LLM pair for reasoning tasks (Part 2 MCP tool selection, classification).
 
     Primary is gemini-3.6-flash (5 RPM / 20 RPD). Fallback is
-    gemini-3.1-flash-lite — the common resilience model for both tiers;
-    it supports structured output and function calling so reasoning degrades
-    gracefully without total failure.
+    gemini-3.5-flash-lite — the newer lightweight model, also supports
+    function calling and structured output, so MCP tool selection and
+    temporal classification degrade gracefully.
 
     Env vars: GEMINI_REASONING_MODEL, GEMINI_REASONING_FALLBACK_MODEL
     """
