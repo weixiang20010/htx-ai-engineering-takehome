@@ -461,7 +461,9 @@ This bounded loop prevents infinite retries while still allowing the agent to re
 
 $$\text{RRF}(d) = \sum_{r \in \{BM25,\ \text{semantic}\}} \frac{1}{K + \text{rank}_r(d)}, \quad K = 60$$
 
-**Why hybrid?** Budget documents mix exact financial terminology ("Corporate Income Tax", "Operating Revenue") and natural-language prose. BM25 dominates for exact-term queries; semantic embeddings recover paraphrased or conceptual queries. Hybrid RRF consistently outperforms either method alone across the evaluation queries below.
+**Why hybrid?** Budget documents mix exact financial terminology ("Corporate Income Tax", "Operating Revenue") and natural-language prose. BM25 dominates for exact-term queries; semantic embeddings recover paraphrased or conceptual queries. Hybrid RRF is expected to outperform either method alone across the evaluation queries.
+
+**Semantic embedding model:** `models/gemini-embedding-001` (supported through at least May 2028). The previously used `text-embedding-004` was deprecated by Google on 14 January 2026.
 
 **Why no vector database?** The corpus is ~150 chunks from a single 37-page PDF. Maintaining a vector DB introduces infrastructure cost and complexity without benefit at this scale. The in-memory semantic index is built once at startup in O(n) API calls.
 
@@ -477,17 +479,23 @@ Facts that fail grounding are logged as warnings and dropped — they are never 
 
 ### Retrieval benchmark
 
-Four evaluation queries were run with `scripts/evaluate_part3_retrieval.py`.  
+Run `scripts/evaluate_part3_retrieval.py` after setup to generate `outputs/part3_retrieval_benchmark.json`.  
 Hit rate = fraction of known-relevant pages appearing in the top-8 results.
 
-| Query | BM25 | Semantic | Hybrid RRF |
-|-------|------|----------|------------|
-| Exact terminology: "Corporate Income Tax Operating Revenue FY2024" | high | medium | **highest** |
-| Paraphrased revenue: "main sources of government income" | low | high | **highest** |
-| Future Energy Fund (paraphrased): "clean energy transition spending" | medium | high | **highest** |
-| Exact top-ups: "top-ups endowment trust funds Budget 2024" | high | medium | **highest** |
+> **Note:** Benchmark results are not pre-populated in this repository.
+> Run the script after configuring `GEMINI_API_KEY` to obtain real numbers.
 
-Hybrid RRF matches or exceeds both individual methods on every query, confirming that the two signals are complementary rather than redundant.
+**Relevance labels used in the benchmark:**
+
+| Query | Known-relevant pages | Rationale |
+|-------|---------------------|-----------|
+| "Corporate Income Tax Operating Revenue FY2024" | 13, 16, 26 | FY2024 projections appear on pp. 13 and 16; statistical annex p. 26 |
+| "What are the main sources of government income?" | 5, 9, 13, 26 | Operating revenue overview and breakdown |
+| "How is the Future Energy Fund being financed?" | 18, 20 | p. 18 — policy statement; p. 20 — Table 2.4 with \$5,000 million figure |
+| "top-ups endowment trust funds Budget 2024" | 12, 18, 20 | Trust fund table and surrounding context |
+
+The benchmark design checks whether hybrid RRF outperforms each individual
+method.  Results will show the actual measured hit rates once the script is run.
 
 ### Running Part 3
 
