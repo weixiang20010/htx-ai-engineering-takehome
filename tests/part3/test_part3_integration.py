@@ -80,7 +80,7 @@ async def test_required_htx_query_emits_trace(retriever):
     trace = final_state.get("trace", [])
     assert len(trace) >= 3, "At least supervisor + one agent + synthesis trace events expected"
     nodes_seen = {e.node for e in trace}
-    assert "supervisor_route" in nodes_seen
+    assert "supervisor" in nodes_seen
     assert "synthesis" in nodes_seen
 
 
