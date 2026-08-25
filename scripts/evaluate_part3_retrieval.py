@@ -36,8 +36,9 @@ EVAL_QUERIES = [
     {
         "id": "exact_terminology",
         "query": "Corporate Income Tax Operating Revenue FY2024",
-        "description": "Exact terminology — taxes, revenue",
-        "relevant_pages": [5, 6, 9, 26],
+        "description": "Exact terminology — FY2024 CIT revenue",
+        # Pages 5-6 discuss Revised FY2023; FY2024 projections are on 13, 16, and the annex p. 26.
+        "relevant_pages": [13, 16, 26],
     },
     {
         "id": "paraphrased_revenue",
@@ -49,13 +50,14 @@ EVAL_QUERIES = [
         "id": "future_energy_fund",
         "query": "How is the Future Energy Fund being financed and supported?",
         "description": "Paraphrased Future Energy Fund / energy-transition support",
-        "relevant_pages": [20, 18],
+        # p. 18 — policy statement; p. 20 — Table 2.4 with $5,000 million figure.
+        "relevant_pages": [18, 20],
     },
     {
         "id": "top_ups_endowment",
         "query": "top-ups endowment trust funds Budget 2024",
         "description": "Exact terminology — top-ups",
-        "relevant_pages": [20, 12, 18],
+        "relevant_pages": [12, 18, 20],
     },
 ]
 
