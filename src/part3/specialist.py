@@ -198,8 +198,10 @@ async def _assess(
     _ = chain  # chain is built dynamically; kept for clarity
 
     stop_reason = state.get("stop_reason")
+    # Record LLM assessment as "ready_to_extract" rather than "success";
+    # final SUCCESS is determined after grounding in _extract_facts.
     if assessment.sufficient and stop_reason is None:
-        stop_reason = "success"
+        stop_reason = "ready_to_extract"
 
     event = _trace(
         state["agent_name"],
@@ -239,31 +241,46 @@ async def _reformulate(
     reasoning_llm: Runnable,
     reasoning_fallback: Runnable | None,
 ) -> dict:
-    """LLM reformulates the search query for the missing aspects."""
+    """Advance to the next search query using the assessment's suggestion.
+
+    EvidenceAssessment.next_search_query is produced by the extraction LLM in
+    the preceding _assess step.  Using it directly avoids an extra reasoning-
+    model call.  The reasoning model is only invoked as a fallback when the
+    assessment did not supply a query (None or empty string).
+    """
     assessment = state["evidence_assessment"]
-    missing = assessment.missing_aspects if assessment else state["required_aspects"]
-    aspects_str = "\n".join(f"  - {a}" for a in missing)
-    prev_queries = "\n".join(f"  - {q}" for q in state["search_queries"])
 
-    new_query_raw, _ = await ainvoke_with_fallback(
-        lambda llm: QUERY_REFORMULATION_PROMPT | llm,
-        {
-            "delegated_task": state["delegated_task"],
-            "missing_aspects": aspects_str,
-            "previous_queries": prev_queries,
-        },
-        reasoning_llm,
-        reasoning_fallback,
-    )
-    new_query = (
-        new_query_raw.content.strip()
-        if hasattr(new_query_raw, "content")
-        else str(new_query_raw).strip()
-    )
+    # Primary: use the query already produced by the evidence-assessment LLM.
+    new_query = (assessment.next_search_query or "").strip() if assessment else ""
 
-    # Repeated-query guard: if the reformulation is identical to a prior query, stop.
+    if not new_query:
+        # Fallback: ask the reasoning model to reformulate.
+        missing = assessment.missing_aspects if assessment else state["required_aspects"]
+        aspects_str = "\n".join(f"  - {a}" for a in missing)
+        prev_queries = "\n".join(f"  - {q}" for q in state["search_queries"])
+
+        raw, _ = await ainvoke_with_fallback(
+            lambda llm: QUERY_REFORMULATION_PROMPT | llm,
+            {
+                "delegated_task": state["delegated_task"],
+                "missing_aspects": aspects_str,
+                "previous_queries": prev_queries,
+            },
+            reasoning_llm,
+            reasoning_fallback,
+        )
+        new_query = (
+            raw.content.strip() if hasattr(raw, "content") else str(raw).strip()
+        )
+
+    # Repeated-query guard: compare against all prior queries AND the current
+    # query so an immediate repeat is also detected.
+    all_seen = {
+        _normalize_query(q)
+        for q in state["search_queries"] + [state["current_query"]]
+    }
     stop_reason = state.get("stop_reason")
-    if _normalize_query(new_query) in {_normalize_query(q) for q in state["search_queries"]}:
+    if _normalize_query(new_query) in all_seen:
         stop_reason = "repeated_query"
         new_query = state["current_query"]  # keep current; won't be used
 
@@ -331,12 +348,10 @@ async def _extract_facts(
                 exc,
             )
 
-    # Determine status based on stop reason and fact availability.
-    if stop == "success" or (validated and assessment and assessment.sufficient):
+    # SUCCESS requires at least one validated grounded fact; the LLM evidence
+    # assessment alone is insufficient because grounding may reject all facts.
+    if validated:
         status = AgentStatus.SUCCESS
-    elif validated:
-        # Partial — had some evidence but not all aspects covered.
-        status = AgentStatus.INSUFFICIENT_EVIDENCE
     else:
         status = AgentStatus.INSUFFICIENT_EVIDENCE
 
@@ -355,7 +370,9 @@ async def _extract_facts(
     return {
         "status": status,
         "grounded_facts": validated,
-        "summary": result.summary,
+        # summary is from the LLM and is not grounded; kept for audit only.
+        # synthesis reads grounded_facts directly and does not use this field.
+        "summary": result.summary if validated else None,
         "trace_events": state["trace_events"] + [event],
     }
 
