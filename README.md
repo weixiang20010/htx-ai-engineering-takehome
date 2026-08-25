@@ -1,4 +1,4 @@
-# HTX AI Engineering Take-Home — Part 1 & Part 2
+# HTX AI Engineering Take-Home — Parts 1, 2 & 3
 
 **Document Extraction, MCP Date Normalisation & LLM Temporal Reasoning with LangChain + Gemini**
 
@@ -32,7 +32,13 @@ Outputs:
 | `outputs/part1_result.json` | Five final extracted values |
 | `outputs/part1_evidence.json` | Per-field audit trail |
 
----
+Run Part 3 (LangGraph multi-agent supervisor):
+
+```bash
+python scripts/run_part3.py
+```
+
+
 
 ## Environment variables
 
@@ -383,6 +389,141 @@ tests/part2/
   test_mcp_integration.py           — 5 real MCP boundary tests, no Gemini
   test_part2_integration.py         — end-to-end tests (require GEMINI_API_KEY)
 ```
+
+---
+
+## Part 3 — LangGraph multi-agent supervisor
+
+### Overview
+
+Part 3 implements a **LangGraph supervisor** that answers questions about the FY2024 Singapore Budget document by routing to specialised agents, running hybrid retrieval loops, and synthesising grounded answers.
+
+```
+User query
+    │
+    ▼
+supervisor_route  ──── routes to one or both ────┐
+                                                  │
+                              ┌───────────────────┴──────────────────┐
+                              ▼                                       ▼
+                        revenue_agent                         expenditure_agent
+                     (retrieval loop)                          (retrieval loop)
+                              │                                       │
+                              └───────────────────┬──────────────────┘
+                                                  ▼
+                                              synthesis
+                                                  │
+                                                  ▼
+                                           final_answer
+```
+
+### Architecture
+
+#### Supervisor pattern
+
+The supervisor node (`src/part3/supervisor.py`) reads the user query, selects the appropriate specialist(s), and delegates a scoped task with a list of required aspects. Each specialist operates independently and writes to a separate key in the shared state, so parallel writes never conflict. The reducer on the `trace` key (`operator.add`) safely merges event lists from concurrent branches.
+
+**Why a supervisor instead of a RAG chain?** A single RAG chain cannot decide which domain(s) a question belongs to, nor can it run independent multi-hop retrieval strategies for revenue and expenditure simultaneously. The supervisor pattern externalises routing logic, making it testable and extensible — adding a new specialist (e.g. a tax-policy agent) does not require rewriting existing code.
+
+#### Parallel fan-out (LangGraph)
+
+When both revenue and expenditure are required, `add_conditional_edges` returns a list of two node names, causing LangGraph to activate both branches in parallel. The synthesis node fires only after all active branches complete (LangGraph fan-in semantics). This halves wall-clock time for combined questions compared to sequential execution.
+
+```python
+# Fan-out (parallel when list has two items)
+graph.add_conditional_edges("supervisor_route", route_fn, ["revenue_agent", "expenditure_agent"])
+
+# Fan-in (synthesis waits for all active branches)
+graph.add_edge("revenue_agent", "synthesis")
+graph.add_edge("expenditure_agent", "synthesis")
+```
+
+#### Specialist agent loop
+
+Each specialist (`src/part3/specialist.py`) runs an internal subgraph:
+
+```
+START → retrieve → assess → [sufficient?] → extract_facts → END
+                        └──→ reformulate ──→ retrieve (loop)
+```
+
+The loop terminates when any of the following conditions holds:
+- Evidence is assessed as sufficient for all required aspects.
+- Maximum retrieval attempts (3) are exhausted.
+- No new chunks were retrieved (no new evidence available).
+- The reformulated query is identical to a previously issued query (repeated query guard).
+
+This bounded loop prevents infinite retries while still allowing the agent to recover from initial sparse retrieval.
+
+#### Hybrid BM25 + semantic retrieval (RRF)
+
+`src/part3/retriever.py` implements **Reciprocal Rank Fusion** (Cormack et al. 2009) over BM25 and semantic embeddings:
+
+$$\text{RRF}(d) = \sum_{r \in \{BM25,\ \text{semantic}\}} \frac{1}{K + \text{rank}_r(d)}, \quad K = 60$$
+
+**Why hybrid?** Budget documents mix exact financial terminology ("Corporate Income Tax", "Operating Revenue") and natural-language prose. BM25 dominates for exact-term queries; semantic embeddings recover paraphrased or conceptual queries. Hybrid RRF consistently outperforms either method alone across the evaluation queries below.
+
+**Why no vector database?** The corpus is ~150 chunks from a single 37-page PDF. Maintaining a vector DB introduces infrastructure cost and complexity without benefit at this scale. The in-memory semantic index is built once at startup in O(n) API calls.
+
+#### Grounding and hallucination control
+
+`src/part3/grounding.py` validates every LLM-extracted fact before inclusion in the result:
+1. The `evidence_text` must appear verbatim (modulo whitespace normalisation) in the source chunks for the stated page.
+2. The `amount_text` (if provided) must appear inside `evidence_text`.
+
+Facts that fail grounding are logged as warnings and dropped — they are never surfaced in the final answer. This ensures the answer cites only what was actually retrieved, not what the LLM "knows" from pre-training.
+
+> **Retrieval rank ≠ truth.** A chunk appearing first in the ranking does not mean it is factually correct. Grounding validation provides an independent, deterministic check that the LLM's claim is traceable to the source document.
+
+### Retrieval benchmark
+
+Four evaluation queries were run with `scripts/evaluate_part3_retrieval.py`.  
+Hit rate = fraction of known-relevant pages appearing in the top-8 results.
+
+| Query | BM25 | Semantic | Hybrid RRF |
+|-------|------|----------|------------|
+| Exact terminology: "Corporate Income Tax Operating Revenue FY2024" | high | medium | **highest** |
+| Paraphrased revenue: "main sources of government income" | low | high | **highest** |
+| Future Energy Fund (paraphrased): "clean energy transition spending" | medium | high | **highest** |
+| Exact top-ups: "top-ups endowment trust funds Budget 2024" | high | medium | **highest** |
+
+Hybrid RRF matches or exceeds both individual methods on every query, confirming that the two signals are complementary rather than redundant.
+
+### Running Part 3
+
+```bash
+# Build the semantic index and run the four demonstration queries
+python scripts/run_part3.py
+
+# Retrieval benchmark (BM25 vs semantic vs hybrid)
+python scripts/evaluate_part3_retrieval.py
+```
+
+**Outputs:**
+
+| File | Contents |
+|------|----------|
+| `outputs/part3_result.json` | Answer for the required HTX query |
+| `outputs/part3_trace.json` | Full trace from the required HTX query |
+| `outputs/part3_demo_queries.json` | Results for all four demonstration queries |
+| `outputs/part3_retrieval_benchmark.json` | Per-query hit rates for all three retrieval methods |
+
+### Key design decisions and trade-offs
+
+| Decision | Rationale | Trade-off |
+|----------|-----------|-----------|
+| Supervisor routes to specialist subgraphs | Separates routing logic from retrieval logic; each specialist is independently testable | Adds one LLM call per query for routing |
+| Parallel fan-out for dual-domain queries | Reduces wall-clock time; agents do not wait on each other | Parallel branches share quota — if rate limits are tight, sequential execution is safer |
+| Bounded retrieval loop (max 3 attempts) | Prevents infinite LLM calls; stops on no-new-evidence | May surface incomplete answers for difficult questions |
+| In-memory BM25 + numpy semantic index | Fast startup; no infrastructure dependency | Must rebuild on every process restart; does not scale beyond ~10,000 chunks |
+| Deterministic grounding validation | No hallucinated amounts or citations in output | Drops valid facts if LLM paraphrases evidence text rather than quoting verbatim |
+| `INSUFFICIENT_EVIDENCE` status | Honest about what was not found; synthesis produces a partial answer | Users receive less complete answers than expected for hard questions |
+
+### Assumptions
+
+- The corpus is one known PDF (single FY2024 Budget document). A production system would maintain a persistent index and support incremental updates.
+- Routing is binary (revenue / expenditure). The supervisor model can be extended with additional specialist types without changing the graph topology.
+- Conversation history is preserved in `SupervisorState.trace` across the graph run but is not re-used as context for follow-up queries in the current implementation. Multi-turn dialogue would require persisting state across `ainvoke` calls.
 
 ---
 
