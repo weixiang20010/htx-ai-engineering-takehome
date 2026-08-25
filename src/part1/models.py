@@ -95,6 +95,11 @@ class FieldEvidence(BaseModel):
     validation_note: str = ""
     # Per-item evidence for list fields (e.g. operating_revenue_taxes)
     per_item_evidence: list[dict[str, str]] | None = None
+    # LLM model traceability
+    requested_model: str | None = None
+    actual_model: str | None = None
+    fallback_used: bool = False
+    fallback_reason: str | None = None
 
 
 class Part1Result(BaseModel):

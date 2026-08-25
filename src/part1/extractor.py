@@ -24,6 +24,8 @@ from pathlib import Path
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
+from src.llm import ModelUsage, ainvoke_with_fallback, build_llm_pair, invoke_with_fallback
+
 from .models import (
     CorporateTaxEvidence,
     FieldEvidence,
@@ -66,23 +68,30 @@ logger = logging.getLogger(__name__)
 def build_llm(
     model: str | None = None,
     api_key: str | None = None,
-) -> ChatGoogleGenerativeAI:
+) -> tuple[ChatGoogleGenerativeAI, ChatGoogleGenerativeAI | None]:
     """
-    Construct a ChatGoogleGenerativeAI instance.
+    Return (primary_llm, fallback_llm) from environment configuration.
 
-    Falls back to environment variables when parameters are not supplied.
+    Reads GEMINI_PRIMARY_MODEL and GEMINI_FALLBACK_MODEL. Accepts explicit
+    overrides for testing. Returns fallback=None when GEMINI_FALLBACK_MODEL
+    is not set.
     """
-    resolved_model = model or os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
-    resolved_key = api_key or os.environ.get("GEMINI_API_KEY") or ""
-    if not resolved_key:
+    import os
+
+    api_key = api_key or os.environ.get("GEMINI_API_KEY") or ""
+    if not api_key:
         raise EnvironmentError(
-            "GEMINI_API_KEY is not set.  "
-            "Provide it via the environment variable or the api_key argument."
+            "GEMINI_API_KEY is not set. "
+            "Provide it via the environment variable or a .env file."
         )
-    return ChatGoogleGenerativeAI(
-        model=resolved_model,
-        google_api_key=resolved_key,
-    )
+    from src.llm import build_llm as _build_one
+
+    primary_name = model or os.environ.get("GEMINI_PRIMARY_MODEL", "gemini-3.6-flash")
+    fallback_name = os.environ.get("GEMINI_FALLBACK_MODEL")
+
+    primary = _build_one(primary_name, api_key)
+    fallback = _build_one(fallback_name, api_key) if fallback_name else None
+    return primary, fallback
 
 
 # ---------------------------------------------------------------------------
@@ -124,6 +133,7 @@ def _detect_unit(text: str) -> str:
 def extract_corporate_tax(
     page5_text: str,
     llm: ChatGoogleGenerativeAI,
+    fallback_llm: ChatGoogleGenerativeAI | None = None,
 ) -> tuple[NormalizedNumber, NormalizedNumber, FieldEvidence, FieldEvidence]:
     """
     Extract Corporate Income Tax amount and YOY percentage from page 5.
@@ -141,8 +151,12 @@ def extract_corporate_tax(
     """
     logger.info("Extraction A: Corporate Income Tax (page 5)")
 
-    chain = CORPORATE_TAX_IMPROVED | llm.with_structured_output(CorporateTaxEvidence)
-    evidence: CorporateTaxEvidence = chain.invoke({"context": page5_text})
+    evidence, usage = invoke_with_fallback(
+        lambda lm: CORPORATE_TAX_IMPROVED | lm.with_structured_output(CorporateTaxEvidence),
+        {"context": page5_text},
+        llm,
+        fallback_llm,
+    )
 
     logger.debug("LLM evidence: %s", evidence.model_dump())
 
@@ -221,6 +235,10 @@ def extract_corporate_tax(
         normalized_value=amount_num.normalized_value,
         validation_passed=amount_passed,
         validation_note=amount_note,
+        requested_model=usage.requested_model,
+        actual_model=usage.actual_model,
+        fallback_used=usage.fallback_used,
+        fallback_reason=usage.fallback_reason,
     )
     yoy_ev = FieldEvidence(
         field_name="corporate_income_tax_yoy_pct_2024",
@@ -231,6 +249,10 @@ def extract_corporate_tax(
         normalized_value=yoy_num.normalized_value,
         validation_passed=yoy_passed,
         validation_note=yoy_note,
+        requested_model=usage.requested_model,
+        actual_model=usage.actual_model,
+        fallback_used=usage.fallback_used,
+        fallback_reason=usage.fallback_reason,
     )
     return amount_num, yoy_num, amount_ev, yoy_ev
 
@@ -244,6 +266,7 @@ def extract_operating_revenue_taxes(
     page5_text: str,
     page6_text: str,
     llm: ChatGoogleGenerativeAI,
+    fallback_llm: ChatGoogleGenerativeAI | None = None,
 ) -> tuple[list[str], FieldEvidence]:
     """
     Extract all tax names mentioned in the Operating Revenue section (pp. 5–6).
@@ -259,10 +282,12 @@ def extract_operating_revenue_taxes(
 
     section = extract_operating_revenue_section(page5_text, page6_text)
     combined = page5_text + "\n" + page6_text  # kept for grounding validation
-    chain = OPERATING_REVENUE_TAXES_IMPROVED | llm.with_structured_output(
-        OperatingRevenueTaxes
+    result, usage = invoke_with_fallback(
+        lambda lm: OPERATING_REVENUE_TAXES_IMPROVED | lm.with_structured_output(OperatingRevenueTaxes),
+        {"context": section},
+        llm,
+        fallback_llm,
     )
-    result: OperatingRevenueTaxes = chain.invoke({"context": section})
 
     logger.debug(
         "LLM taxes (pre-validation): %s", [t.name for t in result.taxes]
@@ -302,7 +327,12 @@ def extract_operating_revenue_taxes(
             {"name": tax.name, "evidence_text": tax.evidence_text}
             for tax in result.taxes
             if tax.name in validated
-        ],    )
+        ],
+        requested_model=usage.requested_model,
+        actual_model=usage.actual_model,
+        fallback_used=usage.fallback_used,
+        fallback_reason=usage.fallback_reason,
+    )
     return validated, ev
 
 
@@ -314,6 +344,7 @@ def extract_operating_revenue_taxes(
 def extract_fiscal_position(
     table8: ParsedTable,
     llm: ChatGoogleGenerativeAI,
+    fallback_llm: ChatGoogleGenerativeAI | None = None,
 ) -> tuple[NormalizedNumber, FieldEvidence]:
     """
     Extract the Latest Actual Fiscal Position from the parsed page-8 table.
@@ -323,8 +354,12 @@ def extract_fiscal_position(
     """
     logger.info("Extraction C: Latest Actual Fiscal Position (page 8)")
 
-    chain = FISCAL_POSITION_IMPROVED | llm.with_structured_output(TableCellSelection)
-    selection: TableCellSelection = chain.invoke({"table_text": table8.to_llm_text()})
+    selection, usage = invoke_with_fallback(
+        lambda lm: FISCAL_POSITION_IMPROVED | lm.with_structured_output(TableCellSelection),
+        {"table_text": table8.to_llm_text()},
+        llm,
+        fallback_llm,
+    )
 
     logger.debug(
         "LLM selection: row=%r, col=%r", selection.row_label, selection.column_label
@@ -344,6 +379,10 @@ def extract_fiscal_position(
         source_unit="billion",
         normalized_value=num.normalized_value,
         validation_passed=True,
+        requested_model=usage.requested_model,
+        actual_model=usage.actual_model,
+        fallback_used=usage.fallback_used,
+        fallback_reason=usage.fallback_reason,
     )
     return num, ev
 
@@ -356,6 +395,7 @@ def extract_fiscal_position(
 def extract_total_top_ups(
     table20: ParsedTable,
     llm: ChatGoogleGenerativeAI,
+    fallback_llm: ChatGoogleGenerativeAI | None = None,
 ) -> tuple[NormalizedNumber, FieldEvidence]:
     """
     Extract the total top-up amount from the parsed page-20 table.
@@ -364,8 +404,12 @@ def extract_total_top_ups(
     """
     logger.info("Extraction D: Total top-ups (page 20)")
 
-    chain = TOP_UPS_IMPROVED | llm.with_structured_output(TableCellSelection)
-    selection: TableCellSelection = chain.invoke({"table_text": table20.to_llm_text()})
+    selection, usage = invoke_with_fallback(
+        lambda lm: TOP_UPS_IMPROVED | lm.with_structured_output(TableCellSelection),
+        {"table_text": table20.to_llm_text()},
+        llm,
+        fallback_llm,
+    )
 
     logger.debug(
         "LLM selection: row=%r, col=%r", selection.row_label, selection.column_label
@@ -385,6 +429,10 @@ def extract_total_top_ups(
         source_unit="$ million",
         normalized_value=num.normalized_value,
         validation_passed=True,
+        requested_model=usage.requested_model,
+        actual_model=usage.actual_model,
+        fallback_used=usage.fallback_used,
+        fallback_reason=usage.fallback_reason,
     )
     return num, ev
 
@@ -397,6 +445,7 @@ def extract_total_top_ups(
 def run_extraction(
     pdf_path: str | Path,
     llm: ChatGoogleGenerativeAI,
+    fallback_llm: ChatGoogleGenerativeAI | None = None,
 ) -> tuple[Part1Result, list[FieldEvidence]]:
     """
     Run the complete Part 1 extraction pipeline.
@@ -406,14 +455,9 @@ def run_extraction(
     pdf_path:
         Path to the source PDF.
     llm:
-        Configured ChatGoogleGenerativeAI instance.
-
-    Returns
-    -------
-    result:
-        Final validated Part1Result.
-    evidence_records:
-        Audit trail with one FieldEvidence per extracted field.
+        Primary ChatGoogleGenerativeAI instance.
+    fallback_llm:
+        Optional fallback LLM used only on quota/rate-limit errors.
     """
     logger.info("Starting Part 1 extraction pipeline")
 
@@ -427,10 +471,10 @@ def run_extraction(
     logger.info("PDF parsing complete")
 
     # --- Run extractions ---
-    amount_num, yoy_num, amount_ev, yoy_ev = extract_corporate_tax(page5_text, llm)
-    taxes, taxes_ev = extract_operating_revenue_taxes(page5_text, page6_text, llm)
-    fiscal_num, fiscal_ev = extract_fiscal_position(table8, llm)
-    topups_num, topups_ev = extract_total_top_ups(table20, llm)
+    amount_num, yoy_num, amount_ev, yoy_ev = extract_corporate_tax(page5_text, llm, fallback_llm)
+    taxes, taxes_ev = extract_operating_revenue_taxes(page5_text, page6_text, llm, fallback_llm)
+    fiscal_num, fiscal_ev = extract_fiscal_position(table8, llm, fallback_llm)
+    topups_num, topups_ev = extract_total_top_ups(table20, llm, fallback_llm)
 
     evidence_records = [amount_ev, yoy_ev, taxes_ev, fiscal_ev, topups_ev]
 

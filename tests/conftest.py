@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for Part 1 tests."""
+"""Shared pytest fixtures for Part 1 and Part 2 tests."""
 from __future__ import annotations
 
 import os
@@ -6,6 +6,9 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+from dotenv import load_dotenv
+
+load_dotenv()  # populate os.environ from .env before any skipif/guard reads it
 
 from src.part1.pdf_parser import ParsedTable
 

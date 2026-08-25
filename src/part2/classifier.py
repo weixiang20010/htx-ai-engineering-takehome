@@ -11,6 +11,7 @@ import logging
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
+from src.llm import ModelUsage, invoke_with_fallback
 from .models import REFERENCE_DATE, InternalDateClassification
 from .prompts import CLASSIFICATION_PROMPT
 
@@ -21,7 +22,8 @@ def classify_date(
     original_text: str,
     normalized_date: str,
     llm: ChatGoogleGenerativeAI,
-) -> InternalDateClassification:
+    fallback_llm: ChatGoogleGenerativeAI | None = None,
+) -> tuple[InternalDateClassification, ModelUsage]:
     """
     Classify a normalized date as Expired / Upcoming / Ongoing.
 
@@ -35,15 +37,18 @@ def classify_date(
         REFERENCE_DATE.isoformat(),
     )
 
-    chain = CLASSIFICATION_PROMPT | llm.with_structured_output(InternalDateClassification)
-    result: InternalDateClassification = chain.invoke(
-        {
-            "original_text": original_text,
-            "normalized_date": normalized_date,
-            "reference_date": REFERENCE_DATE.isoformat(),
-        }
+    inputs = {
+        "original_text": original_text,
+        "normalized_date": normalized_date,
+        "reference_date": REFERENCE_DATE.isoformat(),
+    }
+    result, usage = invoke_with_fallback(
+        lambda lm: CLASSIFICATION_PROMPT | lm.with_structured_output(InternalDateClassification),
+        inputs,
+        llm,
+        fallback_llm,
     )
 
     logger.info("[Part2] Classification: %s — %s", result.status, result.reason)
 
-    return result
+    return result, usage

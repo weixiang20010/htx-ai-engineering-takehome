@@ -21,11 +21,12 @@ class TestPart1EndToEnd:
     """Full pipeline smoke test: PDF → Gemini → validation → Part1Result."""
 
     def test_pipeline_produces_valid_result(self, source_pdf_path, tmp_path) -> None:
-        from src.part1.extractor import build_llm, run_extraction
+        from src.llm import build_llm_pair
+        from src.part1.extractor import run_extraction
         from src.part1.models import Part1Result
 
-        llm = build_llm()
-        result, evidence = run_extraction(source_pdf_path, llm)
+        llm, fallback_llm = build_llm_pair()
+        result, evidence = run_extraction(source_pdf_path, llm, fallback_llm)
 
         # Schema validation — Pydantic ensures types are correct
         assert isinstance(result, Part1Result)

@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.part1.extractor import build_llm
+from src.llm import build_llm_pair
 from src.part2.workflow import run_part2
 
 logging.basicConfig(
@@ -47,15 +47,16 @@ async def _async_main() -> None:
         sys.exit(1)
 
     try:
-        llm = build_llm()
+        llm, fallback_llm = build_llm_pair()
     except EnvironmentError as exc:
         logger.error("%s", exc)
         sys.exit(1)
 
-    logger.info("Using model: %s", os.environ.get("GEMINI_MODEL", "gemini-3.6-flash"))
-    logger.info("Source PDF : %s", pdf_path.resolve())
+    logger.info("Primary model : %s", os.environ.get("GEMINI_PRIMARY_MODEL", "gemini-3.6-flash"))
+    logger.info("Fallback model: %s", os.environ.get("GEMINI_FALLBACK_MODEL", "none"))
+    logger.info("Source PDF    : %s", pdf_path.resolve())
 
-    normalized_dates, results, evidence = await run_part2(pdf_path, llm)
+    normalized_dates, results, evidence = await run_part2(pdf_path, llm, fallback_llm)
 
     outputs_dir = Path("outputs")
     outputs_dir.mkdir(exist_ok=True)

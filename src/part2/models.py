@@ -66,3 +66,8 @@ class Part2Evidence(BaseModel):
     reference_date: str
     llm_status: str
     llm_rationale: str
+    # LLM model traceability
+    requested_model: str | None = None
+    actual_model: str | None = None
+    fallback_used: bool = False
+    fallback_reason: str | None = None

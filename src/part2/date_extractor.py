@@ -11,6 +11,7 @@ import logging
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 
+from src.llm import ModelUsage, invoke_with_fallback
 from src.part1.validators import ExtractionValidationError, validate_evidence_in_source, validate_value_in_evidence
 from .models import ExtractedDate
 
@@ -59,7 +60,8 @@ def extract_date(
     prompt: ChatPromptTemplate,
     llm: ChatGoogleGenerativeAI,
     page_num: int,
-) -> ExtractedDate:
+    fallback_llm: ChatGoogleGenerativeAI | None = None,
+) -> tuple[ExtractedDate, ModelUsage]:
     """
     Use Gemini to identify a target date and its source sentence on a PDF page.
 
@@ -81,8 +83,12 @@ def extract_date(
     """
     logger.info("[Part2] Extracting date from page %d", page_num)
 
-    chain = prompt | llm.with_structured_output(ExtractedDate)
-    result: ExtractedDate = chain.invoke({"context": page_text})
+    result, usage = invoke_with_fallback(
+        lambda lm: prompt | lm.with_structured_output(ExtractedDate),
+        {"context": page_text},
+        llm,
+        fallback_llm,
+    )
 
     logger.debug("[Part2] Page %d LLM result: %s", page_num, result)
 
@@ -90,4 +96,4 @@ def extract_date(
 
     logger.info("[Part2] Page %d source evidence validated", page_num)
 
-    return result
+    return result, usage
