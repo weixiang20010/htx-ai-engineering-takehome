@@ -11,7 +11,7 @@
     "mcp_tool_result": "2024-02-16",
     "reference_date": "2024-01-01",
     "llm_status": "Upcoming",
-    "llm_rationale": "The distribution date of 16 February 2024 occurs after the reference date of 1 January 2024.",
+    "llm_rationale": "The date 2024-02-16 occurs after the reference date of 2024-01-01.",
     "model_usage": {
       "date_extraction": {
         "requested_model": "gemini-3.5-flash-lite",
@@ -27,9 +27,9 @@
       },
       "classification": {
         "requested_model": "gemini-3.6-flash",
-        "actual_model": "gemini-3.6-flash",
-        "fallback_used": false,
-        "fallback_reason": null
+        "actual_model": "gemini-3.5-flash-lite",
+        "fallback_used": true,
+        "fallback_reason": "quota_exceeded"
       }
     }
   },
@@ -44,8 +44,8 @@
     },
     "mcp_tool_result": "2008-02-15",
     "reference_date": "2024-01-01",
-    "llm_status": "Ongoing",
-    "llm_rationale": "The text describes an exemption rule that came into effect on 15 February 2008 and remains active through the reference date.",
+    "llm_status": "Expired",
+    "llm_rationale": "The date February 15, 2008, occurred before the reference date of January 1, 2024, and represents a past cutoff point for the application of Estate Duty.",
     "model_usage": {
       "date_extraction": {
         "requested_model": "gemini-3.5-flash-lite",
@@ -55,15 +55,15 @@
       },
       "tool_selection": {
         "requested_model": "gemini-3.6-flash",
-        "actual_model": "gemini-3.6-flash",
-        "fallback_used": false,
-        "fallback_reason": null
+        "actual_model": "gemini-3.5-flash-lite",
+        "fallback_used": true,
+        "fallback_reason": "quota_exceeded"
       },
       "classification": {
         "requested_model": "gemini-3.6-flash",
-        "actual_model": "gemini-3.6-flash",
-        "fallback_used": false,
-        "fallback_reason": null
+        "actual_model": "gemini-3.5-flash-lite",
+        "fallback_used": true,
+        "fallback_reason": "quota_exceeded"
       }
     }
   }

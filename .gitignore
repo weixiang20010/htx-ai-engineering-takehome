@@ -20,6 +20,9 @@ build/
 # uv
 uv.lock
 
+# Test artefacts
+*.txt
+
 # Pytest
 .pytest_cache/
 htmlcov/

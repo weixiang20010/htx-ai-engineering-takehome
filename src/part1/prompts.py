@@ -118,9 +118,8 @@ CLASSIFICATION RULES — apply strictly:
     gaming/betting taxes, stamp duties, carbon taxes, withholding taxes,
     and items explicitly grouped under a "tax" heading in the document.
 
-  EXCLUDE non-tax revenue items such as fees, premiums, charges, or quotas.
-    For example: "Vehicle Quota Premiums" are quota fees — NOT a tax — and
-    must NOT appear in your output.
+  EXCLUDE non-tax revenue items such as fees, premiums, charges, or quota-related
+    revenue unless the source document explicitly identifies them as a tax.
 
   Do NOT add taxes based on general knowledge.
   evidence_text for each item must be copied verbatim from the document.
@@ -136,7 +135,11 @@ List every TAX or TAX CATEGORY explicitly named within the "Operating Revenue" \
 section.
 For each, return the exact name and a verbatim supporting sentence.
 
-Do NOT include "Vehicle Quota Premiums" or any other fees, charges, or premiums.""",
+Return each unique tax or tax category ONCE. If the same tax appears in both
+a summary sentence and a later paragraph, include only the clearest supporting
+evidence and deduplicate by tax name.
+
+Do NOT include fees, charges, premiums, or quota-related revenue.""",
         ),
     ]
 )

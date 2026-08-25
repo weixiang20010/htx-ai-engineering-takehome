@@ -63,15 +63,24 @@ CLASSIFICATION_PROMPT = ChatPromptTemplate.from_messages(
 Reference date: {reference_date}
 
 Allowed classifications:
-  Expired  — The relevant date, event, or period has already ended before the reference date.
-  Upcoming — The relevant date or event occurs after the reference date.
-  Ongoing  — The source describes a period, condition, or rule that started before or on the
-              reference date and remains active on the reference date.
+  Expired  — A point event or period that ended before the reference date and has
+              no continuing effect on or after it.
+  Upcoming — An event or date that occurs after the reference date.
+  Ongoing  — A period or condition that began before or on the reference date and
+              remains applicable on the reference date.
 
 Rules:
 - Use BOTH the original_text (semantic context) and the normalized_date.
 - The reference date is {reference_date}. Do NOT use today's date or any other date.
 - Do not use external knowledge.
+- For a cutoff or threshold date, apply this reasoning:
+    1. Identify what condition begins at or after the threshold.
+    2. Determine whether the text states an end date for that condition.
+    3. If the condition began before or on the reference date AND no end date before
+       the reference date is stated AND the condition still governs events on the
+       reference date → Ongoing.
+    4. Do not classify a past threshold as Expired solely because the threshold date
+       itself is before the reference date.
 - Return exactly one status from: Expired, Upcoming, Ongoing.
 - Give a concise rationale (one or two sentences). Do not output chain-of-thought.""",
         ),

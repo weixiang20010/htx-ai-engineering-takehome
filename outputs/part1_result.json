@@ -9,15 +9,9 @@
     "Assets Taxes",
     "Betting Taxes",
     "Goods and Services Tax",
-    "Corporate Income Tax",
-    "Other Taxes",
     "Water Conservation Tax",
     "Annual Tonnage Tax",
-    "Personal Income Tax",
-    "Assets Taxes",
-    "Betting Taxes",
-    "Casino Taxes",
-    "Goods and Services Tax"
+    "Casino Taxes"
   ],
   "latest_actual_fiscal_position_billions": 1.72
 }

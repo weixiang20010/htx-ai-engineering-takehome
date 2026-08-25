@@ -39,9 +39,9 @@ Outputs:
 | Variable | Description |
 |----------|-------------|
 | `GEMINI_API_KEY` | Google Gemini API key |
-| `GEMINI_EXTRACTION_MODEL` | Model for extraction tasks (default: `gemini-3.5-flash-lite`, 500 RPD) |
+| `GEMINI_EXTRACTION_MODEL` | Model for extraction tasks (default: `gemini-3.5-flash-lite`, ~500 RPD on the development project's free-tier quota) |
 | `GEMINI_EXTRACTION_FALLBACK_MODEL` | Fallback for extraction on quota/rate-limit errors (default: `gemini-3.1-flash-lite`) |
-| `GEMINI_REASONING_MODEL` | Model for reasoning + tool-selection tasks (default: `gemini-3.6-flash`, 20 RPD) |
+| `GEMINI_REASONING_MODEL` | Model for reasoning + tool-selection tasks (default: `gemini-3.6-flash`, ~20 RPD on the development project's free-tier quota) |
 | `GEMINI_REASONING_FALLBACK_MODEL` | Fallback for reasoning on quota/rate-limit errors (default: `gemini-3.5-flash-lite`) |
 | `SOURCE_PDF` | Path to the data-source PDF (default: `data/fy2024_analysis_of_revenue_and_expenditure.pdf`) |
 
@@ -54,7 +54,7 @@ Outputs:
 | `pdfplumber` | Lightweight page-level text and table extraction; no OCR or CV overhead; output inspected page-by-page before writing any parser code |
 | `langchain` + `langchain-google-genai` | Structured output via `llm.with_structured_output(PydanticModel)` keeps LLM responses schema-validated; prompt templates are version-controlled separately from orchestration logic |
 | `mcp>=1.29.1,<2` | MCP SDK used by `FastMCP` to expose the date-normaliser over stdio. Pinned below 2.x because `langchain-mcp-adapters==0.3.1` is incompatible with the mcp 2.x API |
-| `langchain-mcp-adapters==0.3.1` | Bridges the MCP session into LangChain `BaseTool` objects so LangGraph/LangChain agents can call MCP tools natively |
+| `langchain-mcp-adapters==0.3.1` | Converts MCP tool definitions into LangChain `BaseTool` objects so they can be bound to Gemini through LangChain |
 | `pydantic` | Runtime-validated schemas for every LLM output and final result; field-level documentation doubles as prompt guidance |
 | `python-dotenv` | Keeps secrets out of source code; standard `.env` convention |
 | `pytest` | Parametrised unit tests for all deterministic components; `@pytest.mark.integration` separates API-dependent tests |
@@ -270,11 +270,11 @@ Outputs:
 
 ## Why local MCP for date normalisation?
 
-Date parsing is a deterministic task � a given date string should always produce the same ISO output regardless of model state or temperature.  Exposing `normalize_date_value()` as a **local MCP tool** means:
+Date parsing is a deterministic task — a given date string should always produce the same ISO output regardless of model state or temperature.  Exposing `normalize_date_value()` as a **local MCP tool** means:
 
 1. **Gemini's tool-call is observable** — the `tool_calls` list on the response object is inspected before execution, proving the model requested the tool (not that it answered from training data).
-2. **The normalisation itself is pure Python** � no LLM involved, so the output is predictable and unit-testable without any API calls.
-3. **MCP stdio transport** � the server runs as a subprocess; no network port, no auth, no persistence.
+2. **The normalisation itself is pure Python** — no LLM involved, so the output is predictable and unit-testable without any API calls.
+3. **MCP stdio transport** — the server runs as a subprocess; no network port, no auth, no persistence.
 
 ---
 
@@ -290,7 +290,7 @@ The distinction between **Expired** and **Ongoing** requires semantic context:
 
 > *"Estate Duty does not apply to a person who dies after 15 February 2008."*
 
-The date `2008-02-15` is before the reference date `2024-01-01`, which would naively make it Expired. But the sentence describes a **continuing policy** still in effect at the reference date — it is **Ongoing**. A regex-over-date approach cannot make this distinction. The LLM receives both `original_text` and `normalized_date` so it can reason about whether the date marks a boundary of an ongoing rule, a past event, or a future event.
+The date `2008-02-15` is before the reference date `2024-01-01`, which a simple date comparison would classify as Expired. However, the source uses the date as a threshold — "after 15 February 2008" — and does not state an end date. I therefore interpret it as an open-ended condition that includes the reference date, resulting in `Ongoing`. A regex-over-date approach cannot make this distinction. The LLM receives both `original_text` and `normalized_date` so it can reason about whether the date marks a boundary of an ongoing rule, a past event, or a future event.
 
 ---
 
@@ -356,7 +356,7 @@ Confirmed by inspecting the physical page content: the distribution date appears
 
 ### Estate Duty: Ongoing vs Expired disambiguation
 
-A pure date-comparison rule would classify `2008-02-15` as **Expired** (before the 2024-01-01 reference date). However, the source sentence describes a **continuing policy** still in force at the reference date: *"Estate Duty does not apply to a person who dies after 15 February 2008."* The LLM is expected to classify this as **Ongoing** because the sentence establishes an open-ended condition with no end date stated in the source — the date marks the boundary after which the exemption applies, and that condition includes the reference date 2024-01-01. The integration test suite asserts this classification explicitly.
+A pure date-comparison rule would classify `2008-02-15` as **Expired** (before the 2024-01-01 reference date). I interpret the Estate Duty statement as an open-ended condition because the source sentence applies to persons who die "after 15 February 2008" and states no end date. Under this interpretation, the condition includes the 2024-01-01 reference date and is classified as `Ongoing`. The LLM classification is consistent with this interpretation, and the integration test asserts this outcome.
 
 ---
 
@@ -383,3 +383,15 @@ tests/part2/
   test_mcp_integration.py           — 5 real MCP boundary tests, no Gemini
   test_part2_integration.py         — end-to-end tests (require GEMINI_API_KEY)
 ```
+
+---
+
+## Limitations and future improvements
+
+**Part 1 — tax extraction:** Evidence validation ensures returned values are grounded in the source, but single-pass extraction cannot guarantee 100% recall of every possible tax mention across arbitrarily structured documents.
+
+**PDF parsing:** The page-8 table reconstruction is optimised for this specific document layout. A production system supporting arbitrary PDFs would use a more general table extraction strategy rather than token-level heuristics.
+
+**Part 2 — temporal classification:** Classification is probabilistic because semantic interpretation is performed by an LLM, even though its inputs and allowed output values are constrained. A different model or prompt could produce a different result for ambiguous cases.
+
+**Scalability:** The pipeline processes one known document synchronously. For high-volume or asynchronous processing, bounded concurrency, durable queues, and dead-letter handling could be introduced where appropriate.

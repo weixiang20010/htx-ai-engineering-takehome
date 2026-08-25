@@ -42,6 +42,13 @@ class TestPart1EndToEnd:
         assert len(result.operating_revenue_taxes) >= 5, (
             f"Expected at least 5 taxes, got {len(result.operating_revenue_taxes)}"
         )
+        normalized = [t.strip().casefold() for t in result.operating_revenue_taxes]
+        assert len(normalized) == len(set(normalized)), (
+            f"Duplicate tax names: {result.operating_revenue_taxes}"
+        )
+        assert "Vehicle Quota Premiums" not in result.operating_revenue_taxes, (
+            "Vehicle Quota Premiums must be excluded (it is a quota fee, not a tax)"
+        )
         assert result.latest_actual_fiscal_position_billions != 0.0
 
         # Evidence audit trail is produced for every field

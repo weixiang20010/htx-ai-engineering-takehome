@@ -294,12 +294,21 @@ def extract_operating_revenue_taxes(
 
     # The LLM decides semantically what counts as a tax.
     # Python verifies: evidence exists in source, name exists in evidence.
+    # Python also deduplicates: same tax name must appear only once.
     validated: list[str] = []
+    validated_evidence: list[dict[str, str]] = []
     dropped: list[str] = []
+    seen: set[str] = set()
     for tax in result.taxes:
         try:
             validate_tax_with_evidence(tax.name, tax.evidence_text, combined)
-            validated.append(tax.name)
+            key = " ".join(tax.name.split()).casefold()
+            if key not in seen:
+                seen.add(key)
+                validated.append(tax.name)
+                validated_evidence.append({"name": tax.name, "evidence_text": tax.evidence_text})
+            else:
+                logger.debug("Deduplicating tax %r — already seen", tax.name)
         except ExtractionValidationError as exc:
             logger.warning("Dropping tax %r — evidence not grounded: %s", tax.name, exc)
             dropped.append(tax.name)
@@ -322,11 +331,8 @@ def extract_operating_revenue_taxes(
         validation_note=(
             f"Dropped {len(dropped)} item(s) not grounded in source: {dropped}"
             if dropped else ""
-        ),        per_item_evidence=[
-            {"name": tax.name, "evidence_text": tax.evidence_text}
-            for tax in result.taxes
-            if tax.name in validated
-        ],
+        ),
+        per_item_evidence=validated_evidence,
         requested_model=usage.requested_model,
         actual_model=usage.actual_model,
         fallback_used=usage.fallback_used,

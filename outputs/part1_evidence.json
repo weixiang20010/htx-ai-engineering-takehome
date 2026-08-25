@@ -33,7 +33,7 @@
     "field_name": "operating_revenue_taxes",
     "source_page": 5,
     "source_evidence": "Pages 5–6 Operating Revenue section",
-    "raw_value": "['Corporate Income Tax', 'Other Taxes', 'Personal Income Tax', 'Assets Taxes', 'Betting Taxes', 'Goods and Services Tax', 'Corporate Income Tax', 'Other Taxes', 'Water Conservation Tax', 'Annual Tonnage Tax', 'Personal Income Tax', 'Assets Taxes', 'Betting Taxes', 'Casino Taxes', 'Goods and Services Tax']",
+    "raw_value": "['Corporate Income Tax', 'Other Taxes', 'Personal Income Tax', 'Assets Taxes', 'Betting Taxes', 'Goods and Services Tax', 'Water Conservation Tax', 'Annual Tonnage Tax', 'Casino Taxes']",
     "source_unit": "",
     "normalized_value": null,
     "validation_passed": true,
@@ -45,38 +45,6 @@
       },
       {
         "name": "Other Taxes",
-        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
-      },
-      {
-        "name": "Personal Income Tax",
-        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
-      },
-      {
-        "name": "Assets Taxes",
-        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
-      },
-      {
-        "name": "Betting Taxes",
-        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
-      },
-      {
-        "name": "Goods and Services Tax",
-        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
-      },
-      {
-        "name": "Corporate Income Tax",
-        "evidence_text": "Corporate Income Tax collections are revised to $28.4 billion, which is $4.1 billion (17.0%) higher than the Estimated FY2023 figure due to stronger-than-expected economic growth in 2022."
-      },
-      {
-        "name": "Other Taxes",
-        "evidence_text": "Collections from Other Taxes, which include the Foreign Worker Levy, Water Conservation Tax, Land Betterment Charge, and Annual Tonnage Tax, are revised to $8.8 billion, which is $2.1 billion (32.3%) higher than the Estimated FY2023 figure."
-      },
-      {
-        "name": "Water Conservation Tax",
-        "evidence_text": "Collections from Other Taxes, which include the Foreign Worker Levy, Water Conservation Tax, Land Betterment Charge, and Annual Tonnage Tax, are revised to $8.8 billion, which is $2.1 billion (32.3%) higher than the Estimated FY2023 figure."
-      },
-      {
-        "name": "Annual Tonnage Tax",
         "evidence_text": "Collections from Other Taxes, which include the Foreign Worker Levy, Water Conservation Tax, Land Betterment Charge, and Annual Tonnage Tax, are revised to $8.8 billion, which is $2.1 billion (32.3%) higher than the Estimated FY2023 figure."
       },
       {
@@ -92,12 +60,20 @@
         "evidence_text": "Betting Taxes collections are revised to $3.2 billion, which is $0.3 billion (10.8%) higher than the Estimated FY2023 figure due to stronger-than-expected collections for Casino Taxes."
       },
       {
-        "name": "Casino Taxes",
-        "evidence_text": "Betting Taxes collections are revised to $3.2 billion, which is $0.3 billion (10.8%) higher than the Estimated FY2023 figure due to stronger-than-expected collections for Casino Taxes."
-      },
-      {
         "name": "Goods and Services Tax",
         "evidence_text": "Goods and Services Tax collections are revised to $16.4 billion, which is $1.0 billion (5.8%) lower than the Estimated FY2023 figure due to weaker imports."
+      },
+      {
+        "name": "Water Conservation Tax",
+        "evidence_text": "Collections from Other Taxes, which include the Foreign Worker Levy, Water Conservation Tax, Land Betterment Charge, and Annual Tonnage Tax, are revised to $8.8 billion, which is $2.1 billion (32.3%) higher than the Estimated FY2023 figure."
+      },
+      {
+        "name": "Annual Tonnage Tax",
+        "evidence_text": "Collections from Other Taxes, which include the Foreign Worker Levy, Water Conservation Tax, Land Betterment Charge, and Annual Tonnage Tax, are revised to $8.8 billion, which is $2.1 billion (32.3%) higher than the Estimated FY2023 figure."
+      },
+      {
+        "name": "Casino Taxes",
+        "evidence_text": "Betting Taxes collections are revised to $3.2 billion, which is $0.3 billion (10.8%) higher than the Estimated FY2023 figure due to stronger-than-expected collections for Casino Taxes."
       }
     ],
     "requested_model": "gemini-3.5-flash-lite",
