@@ -75,15 +75,17 @@ def build_extraction_llm_pair() -> tuple[ChatGoogleGenerativeAI, ChatGoogleGener
     """
     Return the LLM pair for extraction tasks (Part 1, Part 2 date extraction).
 
-    Primary is the lightweight model; fallback escalates to the stronger model
-    on quota exhaustion so extraction can still complete.
+    Primary is gemini-3.5-flash-lite (GA, optimised for document parsing and
+    structured output). Fallback is gemini-3.1-flash-lite — the previous
+    stable lightweight model — keeping the fallback within the same task
+    class rather than consuming reasoning-model quota.
 
     Env vars: GEMINI_EXTRACTION_MODEL, GEMINI_EXTRACTION_FALLBACK_MODEL
     """
     return _build_pair(
         "GEMINI_EXTRACTION_MODEL",
         "GEMINI_EXTRACTION_FALLBACK_MODEL",
-        primary_default="gemini-3.1-flash-lite",
+        primary_default="gemini-3.5-flash-lite",
         role="extraction",
     )
 
@@ -92,8 +94,9 @@ def build_reasoning_llm_pair() -> tuple[ChatGoogleGenerativeAI, ChatGoogleGenera
     """
     Return the LLM pair for reasoning tasks (Part 2 MCP tool selection, classification).
 
-    Primary is the stronger model; fallback degrades to the lightweight model
-    on quota exhaustion so reasoning can still complete with reduced capability.
+    Primary is gemini-3.6-flash. Fallback is gemini-3.5-flash-lite — the
+    lightweight extraction primary — so reasoning degrades gracefully without
+    falling all the way back to the oldest model tier.
 
     Env vars: GEMINI_REASONING_MODEL, GEMINI_REASONING_FALLBACK_MODEL
     """
