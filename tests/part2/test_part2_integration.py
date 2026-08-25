@@ -36,7 +36,7 @@ def part2_pipeline_output():
         pytest.skip(_SKIP_REASON)
     extraction_llm, extraction_fallback = build_extraction_llm_pair()
     reasoning_llm, reasoning_fallback = build_reasoning_llm_pair()
-    return asyncio.get_event_loop().run_until_complete(
+    return asyncio.run(
         run_part2(_PDF_PATH, extraction_llm, extraction_fallback, reasoning_llm, reasoning_fallback)
     )
 
