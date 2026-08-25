@@ -38,8 +38,6 @@ def _format_agent_findings(
                 f"Note: Evidence was insufficient for these aspects: "
                 f"{result.missing_aspects}"
             )
-        if result.summary:
-            parts.append(f"Summary: {result.summary}")
 
         for fact in result.facts:
             page_ref = f"[p. {fact.source_page}]"
