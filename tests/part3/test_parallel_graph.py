@@ -1,18 +1,22 @@
 """
-Parallel graph routing tests.
+Parallel graph routing tests using a compiled LangGraph.
 
-Verifies that:
-  - When both agents are selected, both nodes are activated.
-  - When only one agent is selected, only that node runs.
-  - Synthesis fires after all activated branches complete.
+These tests build a minimal StateGraph (no LLM, no retriever) with instrumented
+async nodes to verify LangGraph's fan-out / fan-in semantics:
 
-All LLM calls and agent runners are mocked.
+  - When both agents are selected, both branches execute before synthesis.
+  - When only one agent is selected, only that branch executes.
+  - Synthesis fires after all active branches complete.
+
+Using an actual compiled StateGraph proves that LangGraph's conditional-edge
+fan-out and fan-in work correctly for this graph topology.
 """
 from __future__ import annotations
 
 import asyncio
 import pytest
-from unittest.mock import AsyncMock
+
+from langgraph.graph import END, START, StateGraph
 
 from src.part3.models import (
     AgentName,
@@ -29,7 +33,7 @@ def _dummy_result(agent: AgentName) -> AgentResult:
         agent=agent,
         status=AgentStatus.SUCCESS,
         delegated_task="Test task",
-        summary="OK",
+        summary=None,
         facts=[],
         supported_aspects=[],
         missing_aspects=[],
@@ -37,102 +41,141 @@ def _dummy_result(agent: AgentName) -> AgentResult:
     )
 
 
-def _make_runner(agent: AgentName, call_tracker: list) -> AsyncMock:
-    async def runner(state: SupervisorState) -> dict:
-        call_tracker.append(agent)
-        key = "revenue_result" if agent == AgentName.REVENUE else "expenditure_result"
-        return {key: _dummy_result(agent), "trace": []}
+def _make_routing(agents: list[AgentName]) -> RoutingDecision:
+    return RoutingDecision(
+        selected_agents=agents,
+        revenue_task=DelegatedTask(task="R", required_aspects=[])
+        if AgentName.REVENUE in agents else None,
+        expenditure_task=DelegatedTask(task="E", required_aspects=[])
+        if AgentName.EXPENDITURE in agents else None,
+        reason="Test",
+    )
 
-    return runner
 
+def _build_test_graph(call_log: list[str]) -> object:
+    """
+    Compiled StateGraph with the same topology as the real Part 3 graph but
+    using instrumented async nodes instead of LLM/retriever calls.
 
-@pytest.mark.asyncio
-async def test_both_agents_activated_when_both_selected():
+    Nodes append events to call_log so tests can assert execution order.
+    """
     from src.part3.graph import _build_router
 
-    calls: list[AgentName] = []
-    revenue_runner = _make_runner(AgentName.REVENUE, calls)
-    expenditure_runner = _make_runner(AgentName.EXPENDITURE, calls)
+    async def revenue_runner(state: SupervisorState) -> dict:
+        call_log.append("revenue_start")
+        await asyncio.sleep(0)  # yield to expose interleaving
+        call_log.append("revenue_end")
+        return {"revenue_result": _dummy_result(AgentName.REVENUE), "trace": []}
+
+    async def expenditure_runner(state: SupervisorState) -> dict:
+        call_log.append("expenditure_start")
+        await asyncio.sleep(0)
+        call_log.append("expenditure_end")
+        return {"expenditure_result": _dummy_result(AgentName.EXPENDITURE), "trace": []}
+
+    async def supervisor_node(state: SupervisorState) -> dict:
+        call_log.append("supervisor")
+        return {}  # routing already set in initial state
+
+    async def synthesis_node(state: SupervisorState) -> dict:
+        call_log.append("synthesis")
+        return {"final_answer": "Test answer"}
 
     route_fn, rev_node, exp_node = _build_router(revenue_runner, expenditure_runner)
 
-    state: SupervisorState = {
-        "query": "q",
-        "routing": RoutingDecision(
-            selected_agents=[AgentName.REVENUE, AgentName.EXPENDITURE],
-            revenue_task=DelegatedTask(task="R", required_aspects=[]),
-            expenditure_task=DelegatedTask(task="E", required_aspects=[]),
-            reason="Both",
-        ),
-        "revenue_result": None,
-        "expenditure_result": None,
-        "trace": [],
-        "final_answer": None,
-    }
+    g = StateGraph(SupervisorState)
+    g.add_node("supervisor_route", supervisor_node)
+    g.add_node("revenue_agent", rev_node)
+    g.add_node("expenditure_agent", exp_node)
+    g.add_node("synthesis", synthesis_node)
 
-    # Simulate the graph routing step.
-    activated = route_fn(state)
-    assert "revenue_agent" in activated
-    assert "expenditure_agent" in activated
-
-    # Simulate parallel execution.
-    results = await asyncio.gather(rev_node(state), exp_node(state))
-    assert any(AgentName.REVENUE in str(r) for r in results)
-    assert any(AgentName.EXPENDITURE in str(r) for r in results)
-
-
-@pytest.mark.asyncio
-async def test_only_revenue_activated_for_revenue_only():
-    from src.part3.graph import _build_router
-
-    calls: list[AgentName] = []
-    revenue_runner = _make_runner(AgentName.REVENUE, calls)
-    expenditure_runner = _make_runner(AgentName.EXPENDITURE, calls)
-
-    route_fn, _, _ = _build_router(revenue_runner, expenditure_runner)
-
-    state: SupervisorState = {
-        "query": "q",
-        "routing": RoutingDecision(
-            selected_agents=[AgentName.REVENUE],
-            revenue_task=DelegatedTask(task="R", required_aspects=[]),
-            expenditure_task=None,
-            reason="Revenue only",
-        ),
-        "revenue_result": None,
-        "expenditure_result": None,
-        "trace": [],
-        "final_answer": None,
-    }
-
-    activated = route_fn(state)
-    assert activated == ["revenue_agent"]
-    assert "expenditure_agent" not in activated
-
-
-@pytest.mark.asyncio
-async def test_only_expenditure_activated_for_expenditure_only():
-    from src.part3.graph import _build_router
-
-    calls: list[AgentName] = []
-    route_fn, _, _ = _build_router(
-        _make_runner(AgentName.REVENUE, calls),
-        _make_runner(AgentName.EXPENDITURE, calls),
+    g.add_edge(START, "supervisor_route")
+    g.add_conditional_edges(
+        "supervisor_route",
+        route_fn,
+        ["revenue_agent", "expenditure_agent"],
     )
+    g.add_edge("revenue_agent", "synthesis")
+    g.add_edge("expenditure_agent", "synthesis")
+    g.add_edge("synthesis", END)
 
-    state: SupervisorState = {
-        "query": "q",
-        "routing": RoutingDecision(
-            selected_agents=[AgentName.EXPENDITURE],
-            revenue_task=None,
-            expenditure_task=DelegatedTask(task="E", required_aspects=[]),
-            reason="Expenditure only",
-        ),
+    return g.compile()
+
+
+def _initial_state(agents: list[AgentName]) -> SupervisorState:
+    return {
+        "query": "test query",
+        "routing": _make_routing(agents),
         "revenue_result": None,
         "expenditure_result": None,
         "trace": [],
         "final_answer": None,
     }
 
-    activated = route_fn(state)
-    assert activated == ["expenditure_agent"]
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_both_branches_execute_before_synthesis():
+    """
+    With both agents selected, revenue and expenditure must both complete
+    before synthesis runs — verified against a compiled LangGraph.
+    """
+    call_log: list[str] = []
+    app = _build_test_graph(call_log)
+
+    await app.ainvoke(_initial_state([AgentName.REVENUE, AgentName.EXPENDITURE]))
+
+    assert "revenue_start" in call_log, "Revenue branch must execute"
+    assert "expenditure_start" in call_log, "Expenditure branch must execute"
+    assert "synthesis" in call_log, "Synthesis must execute"
+
+    synthesis_idx = call_log.index("synthesis")
+    assert call_log.index("revenue_end") < synthesis_idx
+    assert call_log.index("expenditure_end") < synthesis_idx
+
+
+@pytest.mark.asyncio
+async def test_both_branches_populate_state():
+    """Both agent results must appear in the final state."""
+    call_log: list[str] = []
+    app = _build_test_graph(call_log)
+
+    final = await app.ainvoke(_initial_state([AgentName.REVENUE, AgentName.EXPENDITURE]))
+
+    assert final["revenue_result"] is not None
+    assert final["expenditure_result"] is not None
+    assert final["final_answer"] == "Test answer"
+
+
+@pytest.mark.asyncio
+async def test_revenue_only_branch():
+    """Only revenue_agent executes; expenditure_result stays None."""
+    call_log: list[str] = []
+    app = _build_test_graph(call_log)
+
+    final = await app.ainvoke(_initial_state([AgentName.REVENUE]))
+
+    assert "revenue_start" in call_log
+    assert "expenditure_start" not in call_log
+    assert "synthesis" in call_log
+    assert final["revenue_result"] is not None
+    assert final["expenditure_result"] is None
+
+
+@pytest.mark.asyncio
+async def test_expenditure_only_branch():
+    """Only expenditure_agent executes; revenue_result stays None."""
+    call_log: list[str] = []
+    app = _build_test_graph(call_log)
+
+    final = await app.ainvoke(_initial_state([AgentName.EXPENDITURE]))
+
+    assert "expenditure_start" in call_log
+    assert "revenue_start" not in call_log
+    assert "synthesis" in call_log
+    assert final["expenditure_result"] is not None
+    assert final["revenue_result"] is None
