@@ -14,8 +14,8 @@
     "llm_rationale": "The distribution date of 16 February 2024 occurs after the reference date of 1 January 2024.",
     "model_usage": {
       "date_extraction": {
-        "requested_model": "gemini-3.6-flash",
-        "actual_model": "gemini-3.6-flash",
+        "requested_model": "gemini-3.5-flash-lite",
+        "actual_model": "gemini-3.5-flash-lite",
         "fallback_used": false,
         "fallback_reason": null
       },
@@ -45,11 +45,11 @@
     "mcp_tool_result": "2008-02-15",
     "reference_date": "2024-01-01",
     "llm_status": "Ongoing",
-    "llm_rationale": "The rule exempting individuals who die after 15 February 2008 from Estate Duty took effect before the reference date of 1 January 2024 and remains active.",
+    "llm_rationale": "The text describes an exemption rule that came into effect on 15 February 2008 and remains active through the reference date.",
     "model_usage": {
       "date_extraction": {
-        "requested_model": "gemini-3.6-flash",
-        "actual_model": "gemini-3.6-flash",
+        "requested_model": "gemini-3.5-flash-lite",
+        "actual_model": "gemini-3.5-flash-lite",
         "fallback_used": false,
         "fallback_reason": null
       },

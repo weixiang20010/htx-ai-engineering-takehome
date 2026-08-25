@@ -8,7 +8,11 @@
     "normalized_value": 28.4,
     "validation_passed": true,
     "validation_note": "",
-    "per_item_evidence": null
+    "per_item_evidence": null,
+    "requested_model": "gemini-3.5-flash-lite",
+    "actual_model": "gemini-3.5-flash-lite",
+    "fallback_used": false,
+    "fallback_reason": null
   },
   {
     "field_name": "corporate_income_tax_yoy_pct_2024",
@@ -19,18 +23,46 @@
     "normalized_value": 17.0,
     "validation_passed": true,
     "validation_note": "",
-    "per_item_evidence": null
+    "per_item_evidence": null,
+    "requested_model": "gemini-3.5-flash-lite",
+    "actual_model": "gemini-3.5-flash-lite",
+    "fallback_used": false,
+    "fallback_reason": null
   },
   {
     "field_name": "operating_revenue_taxes",
     "source_page": 5,
     "source_evidence": "Pages 5–6 Operating Revenue section",
-    "raw_value": "['Corporate Income Tax', 'Other Taxes', 'Water Conservation Tax', 'Annual Tonnage Tax', 'Personal Income Tax', 'Assets Taxes', 'Betting Taxes', 'Casino Taxes', 'Goods and Services Tax']",
+    "raw_value": "['Corporate Income Tax', 'Other Taxes', 'Personal Income Tax', 'Assets Taxes', 'Betting Taxes', 'Goods and Services Tax', 'Corporate Income Tax', 'Other Taxes', 'Water Conservation Tax', 'Annual Tonnage Tax', 'Personal Income Tax', 'Assets Taxes', 'Betting Taxes', 'Casino Taxes', 'Goods and Services Tax']",
     "source_unit": "",
     "normalized_value": null,
     "validation_passed": true,
     "validation_note": "",
     "per_item_evidence": [
+      {
+        "name": "Corporate Income Tax",
+        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
+      },
+      {
+        "name": "Other Taxes",
+        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
+      },
+      {
+        "name": "Personal Income Tax",
+        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
+      },
+      {
+        "name": "Assets Taxes",
+        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
+      },
+      {
+        "name": "Betting Taxes",
+        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
+      },
+      {
+        "name": "Goods and Services Tax",
+        "evidence_text": "This increase is mainly due to higher collections from Corporate Income Tax, Other Taxes, Vehicle Quota Premiums, Personal Income Tax, Assets Taxes, and Betting Taxes, partially offset by lower collections from the Goods and Services Tax."
+      },
       {
         "name": "Corporate Income Tax",
         "evidence_text": "Corporate Income Tax collections are revised to $28.4 billion, which is $4.1 billion (17.0%) higher than the Estimated FY2023 figure due to stronger-than-expected economic growth in 2022."
@@ -67,7 +99,11 @@
         "name": "Goods and Services Tax",
         "evidence_text": "Goods and Services Tax collections are revised to $16.4 billion, which is $1.0 billion (5.8%) lower than the Estimated FY2023 figure due to weaker imports."
       }
-    ]
+    ],
+    "requested_model": "gemini-3.5-flash-lite",
+    "actual_model": "gemini-3.5-flash-lite",
+    "fallback_used": false,
+    "fallback_reason": null
   },
   {
     "field_name": "latest_actual_fiscal_position_billions",
@@ -78,7 +114,11 @@
     "normalized_value": 1.72,
     "validation_passed": true,
     "validation_note": "",
-    "per_item_evidence": null
+    "per_item_evidence": null,
+    "requested_model": "gemini-3.5-flash-lite",
+    "actual_model": "gemini-3.5-flash-lite",
+    "fallback_used": false,
+    "fallback_reason": null
   },
   {
     "field_name": "total_top_ups_2024",
@@ -89,6 +129,10 @@
     "normalized_value": 20352.0,
     "validation_passed": true,
     "validation_note": "",
-    "per_item_evidence": null
+    "per_item_evidence": null,
+    "requested_model": "gemini-3.5-flash-lite",
+    "actual_model": "gemini-3.5-flash-lite",
+    "fallback_used": false,
+    "fallback_reason": null
   }
 ]

@@ -78,6 +78,16 @@ class TestValidateDateExtraction:
         with pytest.raises(ExtractionValidationError):
             _validate_date_extraction(extracted, _PAGE1_TEXT)
 
+    def test_invented_sentence_raises(self) -> None:
+        # date_text is correct and in source, but original_text is fabricated — must fail
+        extracted = ExtractedDate(
+            source_page=1,
+            original_text="The budget was distributed on 16 February 2024 under fiscal law.",
+            date_text="16 February 2024",
+        )
+        with pytest.raises(ExtractionValidationError):
+            _validate_date_extraction(extracted, _PAGE1_TEXT)
+
     def test_empty_date_text_raises(self) -> None:
         extracted = ExtractedDate(
             source_page=1,

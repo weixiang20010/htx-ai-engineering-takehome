@@ -20,16 +20,12 @@ logger = logging.getLogger(__name__)
 
 def _validate_date_extraction(extracted: ExtractedDate, page_text: str) -> None:
     """
-    Verify the LLM extraction is grounded in the source page text.
+    Verify the LLM extraction is fully grounded in the source page text.
 
     Checks:
       1. Both fields are non-null and non-empty.
-      2. date_text appears verbatim in the source page.
+      2. original_text appears verbatim in the source page.
       3. date_text appears within original_text (LLM did not fabricate the date).
-
-    Note: original_text is NOT required to be verbatim in the page text because
-    page 36 uses a two-column layout where pdfplumber interleaves columns, making
-    verbatim matching of multi-sentence spans unreliable.
     """
     if not extracted.original_text:
         raise ExtractionValidationError(
@@ -40,11 +36,11 @@ def _validate_date_extraction(extracted: ExtractedDate, page_text: str) -> None:
             f"Page {extracted.source_page}: LLM returned null date_text"
         )
 
-    # date_text must exist verbatim in the source page — primary grounding check
+    # original_text must be grounded in the source page — catches fabricated sentences
     validate_evidence_in_source(
-        extracted.date_text,
+        extracted.original_text,
         page_text,
-        field_name=f"date_text:page{extracted.source_page}",
+        field_name=f"original_text:page{extracted.source_page}",
     )
 
     # date_text must appear within original_text — LLM did not fabricate it

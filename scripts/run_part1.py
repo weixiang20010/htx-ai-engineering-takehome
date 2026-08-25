@@ -55,7 +55,7 @@ def main() -> None:
         logger.error("%s", exc)
         sys.exit(1)
 
-    logger.info("Extraction model : %s", os.environ.get("GEMINI_EXTRACTION_MODEL", "gemini-3.1-flash-lite"))
+    logger.info("Extraction model : %s", os.environ.get("GEMINI_EXTRACTION_MODEL", "gemini-3.5-flash-lite"))
     logger.info("Extraction fallback: %s", os.environ.get("GEMINI_EXTRACTION_FALLBACK_MODEL", "none"))
     logger.info("Source PDF       : %s", pdf_path.resolve())
 

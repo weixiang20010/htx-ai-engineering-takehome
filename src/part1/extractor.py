@@ -85,7 +85,7 @@ def build_llm(
         )
     from src.llm import build_llm as _build_one
 
-    primary_name = model or os.environ.get("GEMINI_EXTRACTION_MODEL", "gemini-3.1-flash-lite")
+    primary_name = model or os.environ.get("GEMINI_EXTRACTION_MODEL", "gemini-3.5-flash-lite")
     fallback_name = os.environ.get("GEMINI_EXTRACTION_FALLBACK_MODEL")
 
     primary = _build_one(primary_name, api_key)
