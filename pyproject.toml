@@ -1,7 +1,7 @@
 [project]
 name = "htx-assessment"
 version = "0.1.0"
-description = "HTX AI Engineering Take-Home — Part 1: Document Extraction & Prompt Engineering"
+description = "HTX AI Engineering Take-Home — Part 1 & 2: Document Extraction, MCP Date Normalisation & LLM Temporal Reasoning"
 requires-python = ">=3.14"
 dependencies = [
     "pdfplumber>=0.11.0",
@@ -9,6 +9,8 @@ dependencies = [
     "langchain-google-genai>=2.0.0",
     "pydantic>=2.8.0",
     "python-dotenv>=1.0.0",
+    "mcp>=1.29.1,<2",
+    "langchain-mcp-adapters==0.3.1",
 ]
 
 [project.optional-dependencies]

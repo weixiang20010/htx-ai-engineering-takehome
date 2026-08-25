@@ -1,6 +1,6 @@
-# HTX AI Engineering Take-Home â€” Part 1
+# HTX AI Engineering Take-Home â€” Part 1 & Part 2
 
-**Document Extraction & Prompt Engineering with LangChain**
+**Document Extraction, MCP Date Normalisation & LLM Temporal Reasoning with LangChain + Gemini**
 
 ---
 
@@ -231,3 +231,153 @@ Table 2.4 on page 20 states amounts in **$ million**.  The extracted `total_top_
 ### pdfplumber `extract_tables()` failure on page 8
 
 Page 8 returns zero tables from `extract_tables()` because Table 1.1 has no visible ruling lines.  The text extraction is used instead with a trailing-numeric-token parser.  This was verified to produce correct values for all tested rows including `OVERALL FISCAL POSITION`.
+
+---
+
+---
+
+# Part 2 — Data Extraction + Datetime Tool via Local MCP
+
+## What it does
+
+Part 2 extracts two specific dates from the PDF, normalises them to ISO 8601 format via a local MCP tool, then classifies each date against a fixed reference date using Gemini.
+
+| Stage | What happens |
+|-------|--------------|
+| **1A** | Gemini extracts a date and its source sentence from page 1 (distribution date) |
+| **1B** | Gemini extracts a date and its source sentence from page 36 (Estate Duty cutoff) |
+| **1C** | Python validates each date_text appears verbatim in the page source |
+| **2A** | Gemini calls the `normalize_date` MCP tool with the raw date string |
+| **2B** | The MCP server runs `normalize_date_value()` — purely deterministic, no LLM |
+| **2C** | Python captures the MCP tool call and result for the audit trail |
+| **3** | Gemini classifies each ISO date as Expired / Upcoming / Ongoing against 2024-01-01 |
+
+```bash
+python scripts/run_part2.py
+```
+
+Outputs:
+
+| File | Contents |
+|------|----------|
+| `outputs/part2_normalized_dates.json` | Plain JSON list of two ISO date strings |
+| `outputs/part2_result.json` | HTX-schema items: `original_text`, `normalized_date`, `status` |
+| `outputs/part2_evidence.json` | Full audit trail: source page, validation flag, MCP tool trace, LLM rationale |
+
+---
+
+## Why local MCP for date normalisation?
+
+Date parsing is a deterministic task — a given date string should always produce the same ISO output regardless of model state or temperature.  Exposing `normalize_date_value()` as a **local MCP tool** means:
+
+1. **Gemini's tool-call is observable** — the `tool_calls` list on the response object is inspected before execution, proving the model requested the tool (not that it answered from training data).
+2. **The normalisation itself is pure Python** — no LLM involved, so the output is predictable and unit-testable without any API calls.
+3. **MCP stdio transport** — the server runs as a subprocess; no network port, no auth, no persistence.
+
+---
+
+## Why deterministic normalisation, not LLM normalisation?
+
+Normalising `"16 February 2024"` ? `"2024-02-16"` does not require semantic understanding. Delegating it to an LLM adds latency, API cost, and non-determinism. The MCP tool wraps `datetime.strptime` over a known set of formats derived from the source document; it raises `DateNormalizationError` for anything outside that set.
+
+---
+
+## Why LLM classification, not rule-based?
+
+The distinction between **Expired** and **Ongoing** requires semantic context:
+
+> *"Estate Duty does not apply to a person who dies after 15 February 2008."*
+
+The date `2008-02-15` is before the reference date `2024-01-01`, which would naively make it Expired. But the sentence describes a **continuing policy** still in effect at the reference date — it is **Ongoing**. A regex-over-date approach cannot make this distinction. The LLM receives both `original_text` and `normalized_date` so it can reason about whether the date marks a boundary of an ongoing rule, a past event, or a future event.
+
+---
+
+## Why is `original_text` retained in the output?
+
+The HTX output schema includes `original_text` alongside `normalized_date`. Retaining the verbatim source sentence:
+
+- Provides human-readable provenance for each date.
+- Allows reviewers to verify the classification against the source without consulting the PDF.
+- Enables the LLM classifier to use semantic context (see above).
+
+---
+
+## Architecture
+
+```
+PDF pages 1 and 36
+        ¦
+        ?
+   pdfplumber (page.extract_text())
+        ¦
+        ?
+   Gemini (with_structured_output ? ExtractedDate)
+   +-- original_text: source sentence
+   +-- date_text: raw date string
+        ¦
+        ?
+   Python validation
+   +-- date_text verbatim in page source   ? validate_evidence_in_source()
+   +-- date_text within original_text      ? validate_value_in_evidence()
+        ¦
+        ?
+   MCP stdio session (mcp 1.29.1 + FastMCP)
+   +-- Gemini.bind_tools(lc_tools).ainvoke(...)
+   ¦   +-- response.tool_calls[0] verified == "normalize_date"
+   +-- session.call_tool("normalize_date", args)
+       +-- normalize_date_value() ? ISO string
+        ¦
+        ?
+   Gemini (with_structured_output ? InternalDateClassification)
+   +-- status: Expired | Upcoming | Ongoing
+   +-- reason: LLM rationale
+        ¦
+        ?
+   Three JSON output files
+```
+
+---
+
+## Assumptions
+
+### Reference date is fixed at 2024-01-01
+
+The spec states the reference date must not come from the system clock. `REFERENCE_DATE = date(2024, 1, 1)` is a module-level constant in `src/part2/models.py`.
+
+### Source pages are 1 and 36
+
+Confirmed by inspecting the physical page content: the distribution date appears on printed page 1 (physical index 0) and the Estate Duty cutoff appears on printed page 36 (physical index 35).
+
+### Page 36 two-column layout
+
+`pdfplumber` interleaves the two columns on page 36, so the full sentence *"Estate Duty does not apply to a person who dies after 15 February 2008."* is split across non-contiguous tokens. The validation strategy therefore checks that `date_text` (not `original_text`) appears verbatim in the source, and that `date_text` appears within `original_text`. The LLM's reconstructed sentence is used for classification context, not for source-grounding.
+
+### Ongoing vs Expired disambiguation requires LLM
+
+A pure date-comparison rule would classify `2008-02-15` as Expired (before 2024-01-01). The LLM is expected to classify it as Ongoing because the source sentence describes a continuing exemption rule. This is a deliberate design choice; the test suite asserts only that a valid `TemporalStatus` is returned, not that the answer is a specific value.
+
+---
+
+## Part 2 project structure
+
+```
+src/part2/
+  __init__.py
+  models.py          — Pydantic schemas, REFERENCE_DATE, TemporalStatus enum
+  date_normalizer.py — Deterministic ISO conversion (no LLM, no MCP)
+  mcp_server.py      — FastMCP server exposing normalize_date over stdio
+  mcp_client.py      — Async context manager: start server, yield (session, lc_tools)
+  prompts.py         — ChatPromptTemplates for extraction and classification
+  date_extractor.py  — Gemini extraction + evidence validation
+  classifier.py      — Gemini temporal classification
+  workflow.py        — Async orchestration of all stages
+
+scripts/run_part2.py — Entry point; writes three output files
+
+tests/part2/
+  test_date_normalizer.py          — 15 unit tests, no API
+  test_date_extraction_validation.py — 7 validation tests, no API
+  test_models.py                    — 12 schema tests, no API
+  test_mcp_integration.py           — 5 real MCP boundary tests, no Gemini
+  test_part2_integration.py         — end-to-end tests (require GEMINI_API_KEY)
+```
