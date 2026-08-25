@@ -94,6 +94,9 @@ async def run_all() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     demo_results: list[dict] = []
+    # Retain the final state for Query C (HTX required query) — used for both
+    # part3_result.json and part3_trace.json so both files describe the same run.
+    htx_final_state = None
 
     for dq in DEMO_QUERIES:
         logger.info("\n%s", "=" * 60)
@@ -101,6 +104,9 @@ async def run_all() -> None:
         logger.info("  %s", dq["query"])
 
         final_state = await run_query(dq["query"], retriever, app=app)
+
+        if dq["id"] == "C":
+            htx_final_state = final_state
 
         agents_used: list[str] = []
         agent_statuses: dict[str, str] = {}
@@ -140,18 +146,8 @@ async def run_all() -> None:
         json.dump(demo_results, f, indent=2, ensure_ascii=False)
     logger.info("Saved outputs/part3_demo_queries.json")
 
-    # Save the required HTX query (C) separately.
-    htx_state = None
-    for state, dq in zip(
-        [await run_query(d["query"], retriever, app=app) for d in DEMO_QUERIES if d["id"] == "C"],
-        [d for d in DEMO_QUERIES if d["id"] == "C"],
-    ):
-        htx_state = state
-        break
-
-    # Actually re-use the already-run result for query C.
+    # Save Query C result and trace from the single retained state (no re-run).
     htx_result_entry = next(r for r in demo_results if r["query_id"] == "C")
-
     part3_result = {
         "query": htx_result_entry["query"],
         "answer": htx_result_entry["answer"],
@@ -162,16 +158,6 @@ async def run_all() -> None:
         json.dump(part3_result, f, indent=2, ensure_ascii=False)
     logger.info("Saved outputs/part3_result.json")
 
-    # Re-run query C to get the full state for the trace (or use the cached one).
-    # The trace was not stored in demo_results; we need to re-run or restructure.
-    # For now, run query C once more explicitly for the trace output.
-    logger.info("\nRe-running query C for trace output…")
-    htx_final = await run_query(
-        DEMO_QUERIES[2]["query"],  # query C
-        retriever,
-        app=app,
-    )
-
     trace_records = [
         {
             "sequence": e.sequence,
@@ -180,7 +166,7 @@ async def run_all() -> None:
             "details": e.details,
             "timestamp": e.timestamp,
         }
-        for e in sorted(htx_final.get("trace", []), key=lambda x: x.timestamp)
+        for e in sorted(htx_final_state.get("trace", []), key=lambda x: x.timestamp)
     ]
     with open(OUTPUT_DIR / "part3_trace.json", "w", encoding="utf-8") as f:
         json.dump(trace_records, f, indent=2, ensure_ascii=False)
