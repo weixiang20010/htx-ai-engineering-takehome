@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.llm import build_llm_pair
+from src.llm import build_extraction_llm_pair, build_reasoning_llm_pair
 from src.part2.workflow import run_part2
 
 logging.basicConfig(
@@ -47,16 +47,22 @@ async def _async_main() -> None:
         sys.exit(1)
 
     try:
-        llm, fallback_llm = build_llm_pair()
+    try:
+        extraction_llm, extraction_fallback = build_extraction_llm_pair()
+        reasoning_llm, reasoning_fallback = build_reasoning_llm_pair()
     except EnvironmentError as exc:
         logger.error("%s", exc)
         sys.exit(1)
 
-    logger.info("Primary model : %s", os.environ.get("GEMINI_PRIMARY_MODEL", "gemini-3.6-flash"))
-    logger.info("Fallback model: %s", os.environ.get("GEMINI_FALLBACK_MODEL", "none"))
-    logger.info("Source PDF    : %s", pdf_path.resolve())
+    logger.info("Extraction model  : %s", os.environ.get("GEMINI_EXTRACTION_MODEL", "gemini-3.1-flash-lite"))
+    logger.info("Extraction fallback: %s", os.environ.get("GEMINI_EXTRACTION_FALLBACK_MODEL", "none"))
+    logger.info("Reasoning model   : %s", os.environ.get("GEMINI_REASONING_MODEL", "gemini-3.6-flash"))
+    logger.info("Reasoning fallback : %s", os.environ.get("GEMINI_REASONING_FALLBACK_MODEL", "none"))
+    logger.info("Source PDF        : %s", pdf_path.resolve())
 
-    normalized_dates, results, evidence = await run_part2(pdf_path, llm, fallback_llm)
+    normalized_dates, results, evidence = await run_part2(
+        pdf_path, extraction_llm, extraction_fallback, reasoning_llm, reasoning_fallback
+    )
 
     outputs_dir = Path("outputs")
     outputs_dir.mkdir(exist_ok=True)

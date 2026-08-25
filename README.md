@@ -39,8 +39,10 @@ Outputs:
 | Variable | Description |
 |----------|-------------|
 | `GEMINI_API_KEY` | Google Gemini API key |
-| `GEMINI_PRIMARY_MODEL` | Primary model name (default: `gemini-3.6-flash`) |
-| `GEMINI_FALLBACK_MODEL` | Fallback model used when the primary hits quota (optional) |
+| `GEMINI_EXTRACTION_MODEL` | Primary model for extraction tasks (default: `gemini-3.1-flash-lite`) |
+| `GEMINI_EXTRACTION_FALLBACK_MODEL` | Fallback for extraction on quota/rate-limit errors (default: `gemini-3.6-flash`) |
+| `GEMINI_REASONING_MODEL` | Primary model for reasoning + tool-selection tasks (default: `gemini-3.6-flash`) |
+| `GEMINI_REASONING_FALLBACK_MODEL` | Fallback for reasoning on quota/rate-limit errors (default: `gemini-3.1-flash-lite`) |
 | `SOURCE_PDF` | Path to the data-source PDF (default: `data/fy2024_analysis_of_revenue_and_expenditure.pdf`) |
 
 ---

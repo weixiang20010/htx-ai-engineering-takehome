@@ -24,7 +24,7 @@ from pathlib import Path
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-from src.llm import ModelUsage, ainvoke_with_fallback, build_llm_pair, invoke_with_fallback
+from src.llm import ModelUsage, ainvoke_with_fallback, build_extraction_llm_pair, invoke_with_fallback
 
 from .models import (
     CorporateTaxEvidence,
@@ -70,11 +70,10 @@ def build_llm(
     api_key: str | None = None,
 ) -> tuple[ChatGoogleGenerativeAI, ChatGoogleGenerativeAI | None]:
     """
-    Return (primary_llm, fallback_llm) from environment configuration.
+    Return (primary_llm, fallback_llm) for extraction tasks.
 
-    Reads GEMINI_PRIMARY_MODEL and GEMINI_FALLBACK_MODEL. Accepts explicit
-    overrides for testing. Returns fallback=None when GEMINI_FALLBACK_MODEL
-    is not set.
+    Reads GEMINI_EXTRACTION_MODEL and GEMINI_EXTRACTION_FALLBACK_MODEL.
+    Accepts explicit overrides for testing.
     """
     import os
 
@@ -86,8 +85,8 @@ def build_llm(
         )
     from src.llm import build_llm as _build_one
 
-    primary_name = model or os.environ.get("GEMINI_PRIMARY_MODEL", "gemini-3.6-flash")
-    fallback_name = os.environ.get("GEMINI_FALLBACK_MODEL")
+    primary_name = model or os.environ.get("GEMINI_EXTRACTION_MODEL", "gemini-3.1-flash-lite")
+    fallback_name = os.environ.get("GEMINI_EXTRACTION_FALLBACK_MODEL")
 
     primary = _build_one(primary_name, api_key)
     fallback = _build_one(fallback_name, api_key) if fallback_name else None

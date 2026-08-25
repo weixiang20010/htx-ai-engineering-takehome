@@ -1,9 +1,16 @@
 """
 Shared LLM factory and resilience layer for Parts 1 and 2.
 
-Both parts build their LLMs via build_llm_pair() and call the LLM through
-invoke_with_fallback / ainvoke_with_fallback rather than directly. This
-centralises the fallback logic so it does not leak into extraction code.
+Task-specific model pairs
+-------------------------
+Extraction tasks (Part 1, Part 2 date extraction) use a lightweight model
+as primary so quota is reserved for reasoning.  Reasoning tasks (Part 2 MCP
+tool selection, temporal classification) use the stronger model as primary.
+Both roles have a cross-fallback so exhausting one model's quota does not
+stall the pipeline:
+
+    build_extraction_llm_pair()  →  (GEMINI_EXTRACTION_MODEL, GEMINI_EXTRACTION_FALLBACK_MODEL)
+    build_reasoning_llm_pair()   →  (GEMINI_REASONING_MODEL,  GEMINI_REASONING_FALLBACK_MODEL)
 
 Fallback is only triggered for quota / rate-limit errors (429). Validation
 failures, bad PDF extraction, or coding bugs propagate normally — falling
@@ -41,27 +48,61 @@ def build_llm(model_name: str, api_key: str) -> ChatGoogleGenerativeAI:
     return ChatGoogleGenerativeAI(model=model_name, google_api_key=api_key)
 
 
-def build_llm_pair() -> tuple[ChatGoogleGenerativeAI, ChatGoogleGenerativeAI | None]:
-    """
-    Read GEMINI_PRIMARY_MODEL and GEMINI_FALLBACK_MODEL from the environment.
-
-    Returns (primary_llm, fallback_llm).  fallback_llm is None when
-    GEMINI_FALLBACK_MODEL is not set, in which case quota errors propagate.
-    """
+def _build_pair(
+    primary_env: str,
+    fallback_env: str,
+    primary_default: str,
+    role: str,
+) -> tuple[ChatGoogleGenerativeAI, ChatGoogleGenerativeAI | None]:
+    """Read env vars and return (primary, fallback) for a named task role."""
     api_key = os.environ.get("GEMINI_API_KEY") or ""
     if not api_key:
         raise EnvironmentError(
             "GEMINI_API_KEY is not set. "
             "Provide it via the environment variable or a .env file."
         )
-    primary_model = os.environ.get("GEMINI_PRIMARY_MODEL", "gemini-3.6-flash")
-    fallback_model = os.environ.get("GEMINI_FALLBACK_MODEL")
+    primary_model = os.environ.get(primary_env, primary_default)
+    fallback_model = os.environ.get(fallback_env)
 
     primary = build_llm(primary_model, api_key)
     fallback = build_llm(fallback_model, api_key) if fallback_model else None
 
-    logger.debug("LLM pair: primary=%s, fallback=%s", primary_model, fallback_model or "none")
+    logger.debug("%s pair: primary=%s, fallback=%s", role, primary_model, fallback_model or "none")
     return primary, fallback
+
+
+def build_extraction_llm_pair() -> tuple[ChatGoogleGenerativeAI, ChatGoogleGenerativeAI | None]:
+    """
+    Return the LLM pair for extraction tasks (Part 1, Part 2 date extraction).
+
+    Primary is the lightweight model; fallback escalates to the stronger model
+    on quota exhaustion so extraction can still complete.
+
+    Env vars: GEMINI_EXTRACTION_MODEL, GEMINI_EXTRACTION_FALLBACK_MODEL
+    """
+    return _build_pair(
+        "GEMINI_EXTRACTION_MODEL",
+        "GEMINI_EXTRACTION_FALLBACK_MODEL",
+        primary_default="gemini-3.1-flash-lite",
+        role="extraction",
+    )
+
+
+def build_reasoning_llm_pair() -> tuple[ChatGoogleGenerativeAI, ChatGoogleGenerativeAI | None]:
+    """
+    Return the LLM pair for reasoning tasks (Part 2 MCP tool selection, classification).
+
+    Primary is the stronger model; fallback degrades to the lightweight model
+    on quota exhaustion so reasoning can still complete with reduced capability.
+
+    Env vars: GEMINI_REASONING_MODEL, GEMINI_REASONING_FALLBACK_MODEL
+    """
+    return _build_pair(
+        "GEMINI_REASONING_MODEL",
+        "GEMINI_REASONING_FALLBACK_MODEL",
+        primary_default="gemini-3.6-flash",
+        role="reasoning",
+    )
 
 
 def invoke_with_fallback(

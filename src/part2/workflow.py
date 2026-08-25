@@ -13,6 +13,7 @@ from mcp import ClientSession
 
 from src.llm import ModelUsage, ainvoke_with_fallback
 from src.part1.extractor import build_llm  # noqa: F401 — re-exported for convenience
+from src.llm import build_extraction_llm_pair, build_reasoning_llm_pair  # noqa: F401
 from src.part1.pdf_parser import get_page_left_column_text, get_pages_text
 from src.part1.validators import ExtractionValidationError
 
@@ -101,11 +102,19 @@ async def _normalize_via_mcp(
 
 async def run_part2(
     pdf_path: str | Path,
-    llm: ChatGoogleGenerativeAI,
-    fallback_llm: ChatGoogleGenerativeAI | None = None,
+    extraction_llm: ChatGoogleGenerativeAI,
+    extraction_fallback: ChatGoogleGenerativeAI | None = None,
+    reasoning_llm: ChatGoogleGenerativeAI | None = None,
+    reasoning_fallback: ChatGoogleGenerativeAI | None = None,
 ) -> tuple[list[str], list[Part2ResultItem], list[Part2Evidence]]:
     """
     Execute the full Part 2 pipeline.
+
+    extraction_llm / extraction_fallback
+        Used for Gemini date extraction (lightweight model preferred).
+    reasoning_llm / reasoning_fallback
+        Used for MCP tool selection and temporal classification (stronger model preferred).
+        Falls back to extraction_llm when not supplied.
 
     Returns
     -------
@@ -116,6 +125,8 @@ async def run_part2(
     evidence : list[Part2Evidence]
         Full audit records for part2_evidence.json.
     """
+    _reasoning_llm = reasoning_llm if reasoning_llm is not None else extraction_llm
+    _reasoning_fallback = reasoning_fallback
     # ── Stage 1 ─ PDF extraction ────────────────────────────────────────────────
     logger.info("[Part2] Extracting pages 1 and 36 from PDF")
     texts = get_pages_text(pdf_path, printed_pages=[1])
@@ -124,27 +135,27 @@ async def run_part2(
 
     # ── Stage 1 ─ Gemini date extraction ─────────────────────────────────────
     logger.info("[Part2] Extracting distribution date from page 1")
-    extracted1, extract_usage1 = extract_date(texts[1], DISTRIBUTION_DATE_PROMPT, llm, page_num=1, fallback_llm=fallback_llm)
+    extracted1, extract_usage1 = extract_date(texts[1], DISTRIBUTION_DATE_PROMPT, extraction_llm, page_num=1, fallback_llm=extraction_fallback)
 
     logger.info("[Part2] Extracting Estate Duty date from page 36 (left column)")
-    extracted36, extract_usage36 = extract_date(page36_text, ESTATE_DUTY_DATE_PROMPT, llm, page_num=36, fallback_llm=fallback_llm)
+    extracted36, extract_usage36 = extract_date(page36_text, ESTATE_DUTY_DATE_PROMPT, extraction_llm, page_num=36, fallback_llm=extraction_fallback)
 
     # ── Stage 1 ─ MCP normalisation ────────────────────────────────────────
     logger.info("[Part2] Opening MCP session for date normalisation")
     async with open_mcp_session() as (session, lc_tools):
         normalized1, trace1, mcp_usage1 = await _normalize_via_mcp(
-            extracted1.date_text, 1, session, lc_tools, llm, fallback_llm
+            extracted1.date_text, 1, session, lc_tools, _reasoning_llm, _reasoning_fallback
         )
         normalized2, trace2, mcp_usage2 = await _normalize_via_mcp(
-            extracted36.date_text, 36, session, lc_tools, llm, fallback_llm
+            extracted36.date_text, 36, session, lc_tools, _reasoning_llm, _reasoning_fallback
         )
 
     normalized_dates = [normalized1, normalized2]
 
     # ── Stage 2 ─ LLM temporal classification ────────────────────────────────
     logger.info("[Part2] Classifying dates against %s", REFERENCE_DATE.isoformat())
-    classification1, cls_usage1 = classify_date(extracted1.original_text, normalized1, llm, fallback_llm)
-    classification2, cls_usage2 = classify_date(extracted36.original_text, normalized2, llm, fallback_llm)
+    classification1, cls_usage1 = classify_date(extracted1.original_text, normalized1, _reasoning_llm, _reasoning_fallback)
+    classification2, cls_usage2 = classify_date(extracted36.original_text, normalized2, _reasoning_llm, _reasoning_fallback)
 
     results = [
         Part2ResultItem(

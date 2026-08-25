@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 # Make the src package importable when running from the project root
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.llm import build_llm_pair
+from src.llm import build_extraction_llm_pair
 from src.part1.extractor import run_extraction
 
 # ---------------------------------------------------------------------------
@@ -50,14 +50,14 @@ def main() -> None:
 
     # --- Build LLM ---
     try:
-        llm, fallback_llm = build_llm_pair()
+        llm, fallback_llm = build_extraction_llm_pair()
     except EnvironmentError as exc:
         logger.error("%s", exc)
         sys.exit(1)
 
-    logger.info("Primary model : %s", os.environ.get("GEMINI_PRIMARY_MODEL", "gemini-3.6-flash"))
-    logger.info("Fallback model: %s", os.environ.get("GEMINI_FALLBACK_MODEL", "none"))
-    logger.info("Source PDF    : %s", pdf_path.resolve())
+    logger.info("Extraction model : %s", os.environ.get("GEMINI_EXTRACTION_MODEL", "gemini-3.1-flash-lite"))
+    logger.info("Extraction fallback: %s", os.environ.get("GEMINI_EXTRACTION_FALLBACK_MODEL", "none"))
+    logger.info("Source PDF       : %s", pdf_path.resolve())
 
     # --- Run pipeline ---
     result, evidence = run_extraction(pdf_path, llm, fallback_llm)

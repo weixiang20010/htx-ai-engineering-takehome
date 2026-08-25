@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from src.llm import build_llm_pair
+from src.llm import build_extraction_llm_pair, build_reasoning_llm_pair
 from src.part2.models import Part2Evidence, Part2ResultItem, TemporalStatus
 from src.part2.workflow import run_part2
 
@@ -34,9 +34,10 @@ def part2_pipeline_output():
     """Run the Part 2 pipeline once; all tests in this session share the result."""
     if not (_HAS_API_KEY and _PDF_EXISTS):
         pytest.skip(_SKIP_REASON)
-    llm, fallback_llm = build_llm_pair()
+    extraction_llm, extraction_fallback = build_extraction_llm_pair()
+    reasoning_llm, reasoning_fallback = build_reasoning_llm_pair()
     return asyncio.get_event_loop().run_until_complete(
-        run_part2(_PDF_PATH, llm, fallback_llm)
+        run_part2(_PDF_PATH, extraction_llm, extraction_fallback, reasoning_llm, reasoning_fallback)
     )
 
 
