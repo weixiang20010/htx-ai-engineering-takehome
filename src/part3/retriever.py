@@ -7,7 +7,7 @@ Architecture
     query ──┬── BM25 (rank_bm25.BM25Okapi) ──────────┐
             │                                         │
             └── Semantic (GoogleGenerativeAI           │
-                          text-embedding-004)          │
+                          gemini-embedding-001)        │
                     cosine similarity ────────────────┘
                                                       │
                                               RRF fusion (K=60)
@@ -47,7 +47,7 @@ RRF_K: int = 60
 
 class HybridRRFRetriever:
     """
-    In-memory hybrid retriever: BM25 + semantic (Gemini text-embedding-004) + RRF.
+    In-memory hybrid retriever: BM25 + semantic (Gemini gemini-embedding-001) + RRF.
 
     Usage
     -----
@@ -85,11 +85,11 @@ class HybridRRFRetriever:
         Requires a Gemini API key and ~1 API call per 100 chunks.
         """
         self._embedding_model = GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004",
+            model="models/gemini-embedding-001",
             google_api_key=api_key,
         )
         logger.info(
-            "[Part3] Building semantic index for %d chunks (text-embedding-004)…",
+            "[Part3] Building semantic index for %d chunks (gemini-embedding-001)…",
             len(self._texts),
         )
         embeddings = await self._embedding_model.aembed_documents(self._texts)
