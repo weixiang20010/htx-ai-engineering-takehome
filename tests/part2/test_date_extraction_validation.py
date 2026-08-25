@@ -18,10 +18,9 @@ _PAGE1_TEXT = (
     "Distributed on Budget Day: 16 February 2024"
 )
 
-# pdfplumber output for page 36 — two-column interleaving preserved
+# Clean left-column text from page 36 (cropped with pdfplumber; no column interleaving)
 _PAGE36_TEXT = (
-    "Estate Duty does not apply to a Endowment Fund, ElderCare Endowment Fund,\n"
-    "person who dies after 15 February 2008."
+    "Estate Duty does not apply to a\nperson who dies after 15 February 2008."
 )
 
 
@@ -35,8 +34,7 @@ class TestValidateDateExtraction:
         _validate_date_extraction(extracted, _PAGE1_TEXT)
 
     def test_valid_page36_extraction_passes(self) -> None:
-        # original_text may be the LLM's reconstructed sentence (not verbatim from source)
-        # but date_text must be verbatim in the source
+        # With the left-column crop, the full sentence is available verbatim
         extracted = ExtractedDate(
             source_page=36,
             original_text="Estate Duty does not apply to a person who dies after 15 February 2008.",

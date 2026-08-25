@@ -84,3 +84,23 @@ class TestPart2Integration:
         _, _, evidence = part2_pipeline_output
         for ev in evidence:
             assert ev.reference_date == "2024-01-01"
+
+    def test_distribution_date_is_classified_upcoming(self, part2_pipeline_output) -> None:
+        """16 February 2024 is after the 2024-01-01 reference date → Upcoming."""
+        _, results, _ = part2_pipeline_output
+        dist = next(r for r in results if "16 February 2024" in r.original_text)
+        assert dist.status == TemporalStatus.UPCOMING
+
+    def test_estate_duty_date_is_classified_ongoing(self, part2_pipeline_output) -> None:
+        """15 February 2008 marks a continuing policy → Ongoing (not Expired)."""
+        _, results, _ = part2_pipeline_output
+        estate = next(r for r in results if "15 February 2008" in r.original_text)
+        assert estate.status == TemporalStatus.ONGOING
+
+    def test_evidence_records_per_operation_model_usage(self, part2_pipeline_output) -> None:
+        """Evidence must contain per-operation model usage for full audit trail."""
+        _, _, evidence = part2_pipeline_output
+        for ev in evidence:
+            assert ev.model_usage.date_extraction.requested_model
+            assert ev.model_usage.tool_selection.requested_model
+            assert ev.model_usage.classification.requested_model

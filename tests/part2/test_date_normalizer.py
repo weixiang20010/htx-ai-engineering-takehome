@@ -19,17 +19,8 @@ class TestNormalizeDateValue:
     def test_abbreviated_month_historic(self) -> None:
         assert normalize_date_value("15 Feb 2008") == "2008-02-15"
 
-    def test_us_long_format(self) -> None:
-        assert normalize_date_value("February 16, 2024") == "2024-02-16"
-
-    def test_us_abbreviated_format(self) -> None:
-        assert normalize_date_value("Feb 16, 2024") == "2024-02-16"
-
     def test_already_iso_passthrough(self) -> None:
         assert normalize_date_value("2024-02-16") == "2024-02-16"
-
-    def test_slash_format(self) -> None:
-        assert normalize_date_value("16/02/2024") == "2024-02-16"
 
     def test_extra_whitespace_handled(self) -> None:
         assert normalize_date_value("  16 February 2024  ") == "2024-02-16"
@@ -57,3 +48,13 @@ class TestNormalizeDateValue:
     def test_plain_year_raises(self) -> None:
         with pytest.raises(DateNormalizationError):
             normalize_date_value("2024")
+
+    def test_ambiguous_slash_format_raises(self) -> None:
+        """02/03/2024 is ambiguous (DD/MM vs MM/DD) — must fail, not guess."""
+        with pytest.raises(DateNormalizationError):
+            normalize_date_value("02/03/2024")
+
+    def test_us_format_raises(self) -> None:
+        """February 16, 2024 is not in the supported set."""
+        with pytest.raises(DateNormalizationError):
+            normalize_date_value("February 16, 2024")

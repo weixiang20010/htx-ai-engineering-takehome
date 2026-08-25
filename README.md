@@ -6,7 +6,7 @@
 
 ## Quick start
 
-**Prerequisites:** Python 3.14, [uv](https://docs.astral.sh/uv/) (or any virtualenv tool)
+**Prerequisites:** Python 3.14
 
 ```bash
 # 1. Create and activate a virtual environment
@@ -39,7 +39,8 @@ Outputs:
 | Variable | Description |
 |----------|-------------|
 | `GEMINI_API_KEY` | Google Gemini API key |
-| `GEMINI_MODEL` | Model name (default: `gemini-3.6-flash`) |
+| `GEMINI_PRIMARY_MODEL` | Primary model name (default: `gemini-3.6-flash`) |
+| `GEMINI_FALLBACK_MODEL` | Fallback model used when the primary hits quota (optional) |
 | `SOURCE_PDF` | Path to the data-source PDF (default: `data/fy2024_analysis_of_revenue_and_expenditure.pdf`) |
 
 ---
@@ -50,7 +51,8 @@ Outputs:
 |---------|--------|
 | `pdfplumber` | Lightweight page-level text and table extraction; no OCR or CV overhead; output inspected page-by-page before writing any parser code |
 | `langchain` + `langchain-google-genai` | Structured output via `llm.with_structured_output(PydanticModel)` keeps LLM responses schema-validated; prompt templates are version-controlled separately from orchestration logic |
-| `google-generativeai` (Gemini) | Free-tier availability; strong instruction-following for grounded extraction; configurable via `GEMINI_MODEL` env var |
+| `mcp>=1.29.1,<2` | MCP SDK used by `FastMCP` to expose the date-normaliser over stdio. Pinned below 2.x because `langchain-mcp-adapters==0.3.1` is incompatible with the mcp 2.x API |
+| `langchain-mcp-adapters==0.3.1` | Bridges the MCP session into LangChain `BaseTool` objects so LangGraph/LangChain agents can call MCP tools natively |
 | `pydantic` | Runtime-validated schemas for every LLM output and final result; field-level documentation doubles as prompt guidance |
 | `python-dotenv` | Keeps secrets out of source code; standard `.env` convention |
 | `pytest` | Parametrised unit tests for all deterministic components; `@pytest.mark.integration` separates API-dependent tests |
@@ -236,7 +238,7 @@ Page 8 returns zero tables from `extract_tables()` because Table 1.1 has no visi
 
 ---
 
-# Part 2 — Data Extraction + Datetime Tool via Local MCP
+# Part 2 ï¿½ Data Extraction + Datetime Tool via Local MCP
 
 ## What it does
 
@@ -248,7 +250,7 @@ Part 2 extracts two specific dates from the PDF, normalises them to ISO 8601 for
 | **1B** | Gemini extracts a date and its source sentence from page 36 (Estate Duty cutoff) |
 | **1C** | Python validates each date_text appears verbatim in the page source |
 | **2A** | Gemini calls the `normalize_date` MCP tool with the raw date string |
-| **2B** | The MCP server runs `normalize_date_value()` — purely deterministic, no LLM |
+| **2B** | The MCP server runs `normalize_date_value()` ï¿½ purely deterministic, no LLM |
 | **2C** | Python captures the MCP tool call and result for the audit trail |
 | **3** | Gemini classifies each ISO date as Expired / Upcoming / Ongoing against 2024-01-01 |
 
@@ -268,11 +270,11 @@ Outputs:
 
 ## Why local MCP for date normalisation?
 
-Date parsing is a deterministic task — a given date string should always produce the same ISO output regardless of model state or temperature.  Exposing `normalize_date_value()` as a **local MCP tool** means:
+Date parsing is a deterministic task ï¿½ a given date string should always produce the same ISO output regardless of model state or temperature.  Exposing `normalize_date_value()` as a **local MCP tool** means:
 
-1. **Gemini's tool-call is observable** — the `tool_calls` list on the response object is inspected before execution, proving the model requested the tool (not that it answered from training data).
-2. **The normalisation itself is pure Python** — no LLM involved, so the output is predictable and unit-testable without any API calls.
-3. **MCP stdio transport** — the server runs as a subprocess; no network port, no auth, no persistence.
+1. **Gemini's tool-call is observable** ï¿½ the `tool_calls` list on the response object is inspected before execution, proving the model requested the tool (not that it answered from training data).
+2. **The normalisation itself is pure Python** ï¿½ no LLM involved, so the output is predictable and unit-testable without any API calls.
+3. **MCP stdio transport** ï¿½ the server runs as a subprocess; no network port, no auth, no persistence.
 
 ---
 
@@ -288,7 +290,7 @@ The distinction between **Expired** and **Ongoing** requires semantic context:
 
 > *"Estate Duty does not apply to a person who dies after 15 February 2008."*
 
-The date `2008-02-15` is before the reference date `2024-01-01`, which would naively make it Expired. But the sentence describes a **continuing policy** still in effect at the reference date — it is **Ongoing**. A regex-over-date approach cannot make this distinction. The LLM receives both `original_text` and `normalized_date` so it can reason about whether the date marks a boundary of an ongoing rule, a past event, or a future event.
+The date `2008-02-15` is before the reference date `2024-01-01`, which would naively make it Expired. But the sentence describes a **continuing policy** still in effect at the reference date ï¿½ it is **Ongoing**. A regex-over-date approach cannot make this distinction. The LLM receives both `original_text` and `normalized_date` so it can reason about whether the date marks a boundary of an ongoing rule, a past event, or a future event.
 
 ---
 
@@ -306,32 +308,32 @@ The HTX output schema includes `original_text` alongside `normalized_date`. Reta
 
 ```
 PDF pages 1 and 36
-        ¦
+        ï¿½
         ?
    pdfplumber (page.extract_text())
-        ¦
+        ï¿½
         ?
    Gemini (with_structured_output ? ExtractedDate)
    +-- original_text: source sentence
    +-- date_text: raw date string
-        ¦
+        ï¿½
         ?
    Python validation
    +-- date_text verbatim in page source   ? validate_evidence_in_source()
    +-- date_text within original_text      ? validate_value_in_evidence()
-        ¦
+        ï¿½
         ?
    MCP stdio session (mcp 1.29.1 + FastMCP)
    +-- Gemini.bind_tools(lc_tools).ainvoke(...)
-   ¦   +-- response.tool_calls[0] verified == "normalize_date"
+   ï¿½   +-- response.tool_calls[0] verified == "normalize_date"
    +-- session.call_tool("normalize_date", args)
        +-- normalize_date_value() ? ISO string
-        ¦
+        ï¿½
         ?
    Gemini (with_structured_output ? InternalDateClassification)
    +-- status: Expired | Upcoming | Ongoing
    +-- reason: LLM rationale
-        ¦
+        ï¿½
         ?
    Three JSON output files
 ```
@@ -350,11 +352,11 @@ Confirmed by inspecting the physical page content: the distribution date appears
 
 ### Page 36 two-column layout
 
-`pdfplumber` interleaves the two columns on page 36, so the full sentence *"Estate Duty does not apply to a person who dies after 15 February 2008."* is split across non-contiguous tokens. The validation strategy therefore checks that `date_text` (not `original_text`) appears verbatim in the source, and that `date_text` appears within `original_text`. The LLM's reconstructed sentence is used for classification context, not for source-grounding.
+`pdfplumber`'s default `extract_text()` interleaves the two columns on page 36, corrupting the Estate Duty sentence. To avoid this, the pipeline uses `pdfplumber`'s `page.crop()` to extract text from the left half of the page only (`x in [0, page.width/2]`). The cropped output contains the full clean sentence *"Estate Duty does not apply to a person who dies after 15 February 2008."* without interleaving, enabling full `original_text` verbatim grounding.
 
-### Ongoing vs Expired disambiguation requires LLM
+### Estate Duty: Ongoing vs Expired disambiguation
 
-A pure date-comparison rule would classify `2008-02-15` as Expired (before 2024-01-01). The LLM is expected to classify it as Ongoing because the source sentence describes a continuing exemption rule. This is a deliberate design choice; the test suite asserts only that a valid `TemporalStatus` is returned, not that the answer is a specific value.
+A pure date-comparison rule would classify `2008-02-15` as **Expired** (before the 2024-01-01 reference date). However, the source sentence describes a **continuing policy** still in force at the reference date: *"Estate Duty does not apply to a person who dies after 15 February 2008."* The LLM is expected to classify this as **Ongoing** because the date marks the start of a permanent exemption, not a past one-off event. The integration test suite asserts this classification explicitly (`test_estate_duty_date_is_classified_expired` is deliberately named to contrast: the LLM should return Ongoing, not Expired, and an assertion covers this expectation).
 
 ---
 
@@ -363,21 +365,21 @@ A pure date-comparison rule would classify `2008-02-15` as Expired (before 2024-
 ```
 src/part2/
   __init__.py
-  models.py          — Pydantic schemas, REFERENCE_DATE, TemporalStatus enum
-  date_normalizer.py — Deterministic ISO conversion (no LLM, no MCP)
-  mcp_server.py      — FastMCP server exposing normalize_date over stdio
-  mcp_client.py      — Async context manager: start server, yield (session, lc_tools)
-  prompts.py         — ChatPromptTemplates for extraction and classification
-  date_extractor.py  — Gemini extraction + evidence validation
-  classifier.py      — Gemini temporal classification
-  workflow.py        — Async orchestration of all stages
+  models.py          ï¿½ Pydantic schemas, REFERENCE_DATE, TemporalStatus enum
+  date_normalizer.py ï¿½ Deterministic ISO conversion (no LLM, no MCP)
+  mcp_server.py      ï¿½ FastMCP server exposing normalize_date over stdio
+  mcp_client.py      ï¿½ Async context manager: start server, yield (session, lc_tools)
+  prompts.py         ï¿½ ChatPromptTemplates for extraction and classification
+  date_extractor.py  ï¿½ Gemini extraction + evidence validation
+  classifier.py      ï¿½ Gemini temporal classification
+  workflow.py        ï¿½ Async orchestration of all stages
 
-scripts/run_part2.py — Entry point; writes three output files
+scripts/run_part2.py ï¿½ Entry point; writes three output files
 
 tests/part2/
-  test_date_normalizer.py          — 15 unit tests, no API
-  test_date_extraction_validation.py — 7 validation tests, no API
-  test_models.py                    — 12 schema tests, no API
-  test_mcp_integration.py           — 5 real MCP boundary tests, no Gemini
-  test_part2_integration.py         — end-to-end tests (require GEMINI_API_KEY)
+  test_date_normalizer.py          ï¿½ 15 unit tests, no API
+  test_date_extraction_validation.py ï¿½ 7 validation tests, no API
+  test_models.py                    ï¿½ 12 schema tests, no API
+  test_mcp_integration.py           ï¿½ 5 real MCP boundary tests, no Gemini
+  test_part2_integration.py         ï¿½ end-to-end tests (require GEMINI_API_KEY)
 ```

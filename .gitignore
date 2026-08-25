@@ -44,4 +44,4 @@ notebooks/.ipynb_checkpoints/
 .DS_Store
 Thumbs.db
 
-test_results.txt
+test_*.txt

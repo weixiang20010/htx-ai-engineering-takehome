@@ -228,6 +228,21 @@ def get_pages_text(pdf_path: str | Path, printed_pages: list[int]) -> dict[int, 
     return result
 
 
+def get_page_left_column_text(pdf_path: str | Path, printed_page: int) -> str:
+    """
+    Extract text from the left half of a two-column page.
+
+    Crops to x ∈ [0, page.width/2] before calling extract_text(), which
+    produces a single clean column rather than the interleaved output that
+    full-page extraction yields on two-column layouts.
+    """
+    with pdfplumber.open(str(pdf_path)) as pdf:
+        page = pdf.pages[page_index(printed_page)]
+        left = page.crop((0, 0, page.width / 2, page.height))
+        raw = left.extract_text() or ""
+    return _strip_page_footers(raw)
+
+
 # ---------------------------------------------------------------------------
 # Table extraction — page 8
 # ---------------------------------------------------------------------------

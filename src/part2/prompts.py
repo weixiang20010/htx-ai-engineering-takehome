@@ -72,7 +72,6 @@ Rules:
 - Use BOTH the original_text (semantic context) and the normalized_date.
 - The reference date is {reference_date}. Do NOT use today's date or any other date.
 - Do not use external knowledge.
-- Do not modify the normalized_date.
 - Return exactly one status from: Expired, Upcoming, Ongoing.
 - Give a concise rationale (one or two sentences). Do not output chain-of-thought.""",
         ),

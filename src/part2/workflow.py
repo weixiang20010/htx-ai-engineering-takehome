@@ -13,13 +13,13 @@ from mcp import ClientSession
 
 from src.llm import ModelUsage, ainvoke_with_fallback
 from src.part1.extractor import build_llm  # noqa: F401 — re-exported for convenience
-from src.part1.pdf_parser import get_pages_text
+from src.part1.pdf_parser import get_page_left_column_text, get_pages_text
 from src.part1.validators import ExtractionValidationError
 
 from .classifier import classify_date
 from .date_extractor import extract_date
 from .mcp_client import open_mcp_session
-from .models import REFERENCE_DATE, Part2Evidence, Part2ResultItem
+from .models import REFERENCE_DATE, Part2Evidence, Part2ResultItem, PerOperationModelUsage
 from .prompts import DISTRIBUTION_DATE_PROMPT, ESTATE_DUTY_DATE_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -59,11 +59,22 @@ async def _normalize_via_mcp(
             f"Page {source_page}: Gemini did not call normalize_date for {date_text!r}"
         )
 
+    if len(response.tool_calls) != 1:
+        raise ExtractionValidationError(
+            f"Page {source_page}: expected exactly 1 tool call, got {len(response.tool_calls)}"
+        )
+
     tool_call = response.tool_calls[0]
 
     if tool_call["name"] != "normalize_date":
         raise ExtractionValidationError(
             f"Page {source_page}: expected tool 'normalize_date', got {tool_call['name']!r}"
+        )
+
+    if tool_call["args"].get("date_text") != date_text:
+        raise ExtractionValidationError(
+            f"Page {source_page}: MCP tool argument {tool_call['args'].get('date_text')!r} "
+            f"does not match validated date {date_text!r}"
         )
 
     logger.info("[Part2] Gemini requested tool: %s", tool_call["name"])
@@ -105,16 +116,18 @@ async def run_part2(
     evidence : list[Part2Evidence]
         Full audit records for part2_evidence.json.
     """
-    # ── Stage 1 ─ PDF extraction ─────────────────────────────────────────────
+    # ── Stage 1 ─ PDF extraction ────────────────────────────────────────────────
     logger.info("[Part2] Extracting pages 1 and 36 from PDF")
-    texts = get_pages_text(pdf_path, printed_pages=[1, 36])
+    texts = get_pages_text(pdf_path, printed_pages=[1])
+    # Page 36 is two-column: crop left half to get a clean, non-interleaved paragraph
+    page36_text = get_page_left_column_text(pdf_path, printed_page=36)
 
     # ── Stage 1 ─ Gemini date extraction ─────────────────────────────────────
     logger.info("[Part2] Extracting distribution date from page 1")
     extracted1, extract_usage1 = extract_date(texts[1], DISTRIBUTION_DATE_PROMPT, llm, page_num=1, fallback_llm=fallback_llm)
 
-    logger.info("[Part2] Extracting Estate Duty date from page 36")
-    extracted36, extract_usage36 = extract_date(texts[36], ESTATE_DUTY_DATE_PROMPT, llm, page_num=36, fallback_llm=fallback_llm)
+    logger.info("[Part2] Extracting Estate Duty date from page 36 (left column)")
+    extracted36, extract_usage36 = extract_date(page36_text, ESTATE_DUTY_DATE_PROMPT, llm, page_num=36, fallback_llm=fallback_llm)
 
     # ── Stage 1 ─ MCP normalisation ────────────────────────────────────────
     logger.info("[Part2] Opening MCP session for date normalisation")
@@ -135,13 +148,13 @@ async def run_part2(
 
     results = [
         Part2ResultItem(
-            original_text=classification1.original_text,
-            normalized_date=classification1.normalized_date,
-            status=classification1.status,
+            original_text=extracted1.original_text,   # PDF is authority
+            normalized_date=normalized1,              # MCP is authority
+            status=classification1.status,            # LLM is authority
         ),
         Part2ResultItem(
-            original_text=classification2.original_text,
-            normalized_date=classification2.normalized_date,
+            original_text=extracted36.original_text,
+            normalized_date=normalized2,
             status=classification2.status,
         ),
     ]
@@ -158,10 +171,11 @@ async def run_part2(
             reference_date=REFERENCE_DATE.isoformat(),
             llm_status=str(classification1.status),
             llm_rationale=classification1.reason,
-            requested_model=extract_usage1.requested_model,
-            actual_model=cls_usage1.actual_model,
-            fallback_used=extract_usage1.fallback_used or mcp_usage1.fallback_used or cls_usage1.fallback_used,
-            fallback_reason=extract_usage1.fallback_reason or mcp_usage1.fallback_reason or cls_usage1.fallback_reason,
+            model_usage=PerOperationModelUsage(
+                date_extraction=extract_usage1,
+                tool_selection=mcp_usage1,
+                classification=cls_usage1,
+            ),
         ),
         Part2Evidence(
             source_page=36,
@@ -174,10 +188,11 @@ async def run_part2(
             reference_date=REFERENCE_DATE.isoformat(),
             llm_status=str(classification2.status),
             llm_rationale=classification2.reason,
-            requested_model=extract_usage36.requested_model,
-            actual_model=cls_usage2.actual_model,
-            fallback_used=extract_usage36.fallback_used or mcp_usage2.fallback_used or cls_usage2.fallback_used,
-            fallback_reason=extract_usage36.fallback_reason or mcp_usage2.fallback_reason or cls_usage2.fallback_reason,
+            model_usage=PerOperationModelUsage(
+                date_extraction=extract_usage36,
+                tool_selection=mcp_usage2,
+                classification=cls_usage2,
+            ),
         ),
     ]
 

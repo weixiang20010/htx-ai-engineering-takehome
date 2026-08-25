@@ -1,0 +1,70 @@
+[
+  {
+    "source_page": 1,
+    "source_statement": "Distributed on Budget Day: 16 February 2024",
+    "extracted_date_text": "16 February 2024",
+    "source_validation_passed": true,
+    "mcp_tool_requested": "normalize_date",
+    "mcp_tool_arguments": {
+      "date_text": "16 February 2024"
+    },
+    "mcp_tool_result": "2024-02-16",
+    "reference_date": "2024-01-01",
+    "llm_status": "Upcoming",
+    "llm_rationale": "The distribution date of 16 February 2024 occurs after the reference date of 1 January 2024.",
+    "model_usage": {
+      "date_extraction": {
+        "requested_model": "gemini-3.6-flash",
+        "actual_model": "gemini-3.6-flash",
+        "fallback_used": false,
+        "fallback_reason": null
+      },
+      "tool_selection": {
+        "requested_model": "gemini-3.6-flash",
+        "actual_model": "gemini-3.6-flash",
+        "fallback_used": false,
+        "fallback_reason": null
+      },
+      "classification": {
+        "requested_model": "gemini-3.6-flash",
+        "actual_model": "gemini-3.6-flash",
+        "fallback_used": false,
+        "fallback_reason": null
+      }
+    }
+  },
+  {
+    "source_page": 36,
+    "source_statement": "Estate Duty does not apply to a person who dies after 15 February 2008.",
+    "extracted_date_text": "15 February 2008",
+    "source_validation_passed": true,
+    "mcp_tool_requested": "normalize_date",
+    "mcp_tool_arguments": {
+      "date_text": "15 February 2008"
+    },
+    "mcp_tool_result": "2008-02-15",
+    "reference_date": "2024-01-01",
+    "llm_status": "Ongoing",
+    "llm_rationale": "The rule exempting individuals who die after 15 February 2008 from Estate Duty took effect before the reference date of 1 January 2024 and remains active.",
+    "model_usage": {
+      "date_extraction": {
+        "requested_model": "gemini-3.6-flash",
+        "actual_model": "gemini-3.6-flash",
+        "fallback_used": false,
+        "fallback_reason": null
+      },
+      "tool_selection": {
+        "requested_model": "gemini-3.6-flash",
+        "actual_model": "gemini-3.6-flash",
+        "fallback_used": false,
+        "fallback_reason": null
+      },
+      "classification": {
+        "requested_model": "gemini-3.6-flash",
+        "actual_model": "gemini-3.6-flash",
+        "fallback_used": false,
+        "fallback_reason": null
+      }
+    }
+  }
+]

@@ -6,6 +6,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
+from src.llm import ModelUsage
+
 # Fixed assessment constant — do not derive from system clock
 REFERENCE_DATE: date = date(2024, 1, 1)
 
@@ -37,10 +39,8 @@ class TemporalStatus(StrEnum):
 
 
 class InternalDateClassification(BaseModel):
-    """LLM classification including concise rationale (not surfaced in final output)."""
+    """LLM classification output — only the fields the LLM actually determines."""
 
-    original_text: str
-    normalized_date: str = Field(description="ISO YYYY-MM-DD as returned by the MCP tool")
     status: TemporalStatus
     reason: str = Field(description="Concise rationale for the classification (one or two sentences)")
 
@@ -51,6 +51,14 @@ class Part2ResultItem(BaseModel):
     original_text: str
     normalized_date: str
     status: TemporalStatus
+
+
+class PerOperationModelUsage(BaseModel):
+    """Model usage broken down by pipeline stage for full audit transparency."""
+
+    date_extraction: ModelUsage
+    tool_selection: ModelUsage
+    classification: ModelUsage
 
 
 class Part2Evidence(BaseModel):
@@ -66,8 +74,4 @@ class Part2Evidence(BaseModel):
     reference_date: str
     llm_status: str
     llm_rationale: str
-    # LLM model traceability
-    requested_model: str | None = None
-    actual_model: str | None = None
-    fallback_used: bool = False
-    fallback_reason: str | None = None
+    model_usage: PerOperationModelUsage

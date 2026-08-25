@@ -8,13 +8,10 @@ from __future__ import annotations
 
 from datetime import datetime
 
-# Explicit format list — predictability over fuzzy guessing
+# Explicit format list — fail-closed on ambiguous numeric formats (e.g. 02/03/2024)
 _FORMATS: tuple[str, ...] = (
     "%d %B %Y",   # 16 February 2024
     "%d %b %Y",   # 16 Feb 2024
-    "%B %d, %Y",  # February 16, 2024
-    "%b %d, %Y",  # Feb 16, 2024
-    "%d/%m/%Y",   # 16/02/2024
     "%Y-%m-%d",   # Already ISO
 )
 

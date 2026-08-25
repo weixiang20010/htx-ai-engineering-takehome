@@ -11,8 +11,10 @@ from src.part2.models import (
     InternalDateClassification,
     Part2Evidence,
     Part2ResultItem,
+    PerOperationModelUsage,
     TemporalStatus,
 )
+from src.llm import ModelUsage
 
 
 class TestReferenceDate:
@@ -77,16 +79,26 @@ class TestPart2ResultItem:
 class TestInternalDateClassification:
     def test_valid_construction(self) -> None:
         obj = InternalDateClassification(
-            original_text="Distributed on Budget Day: 16 February 2024",
-            normalized_date="2024-02-16",
             status=TemporalStatus.UPCOMING,
             reason="The date is after the reference date.",
         )
-        assert obj.normalized_date == "2024-02-16"
         assert obj.status == TemporalStatus.UPCOMING
+        assert obj.reason
+
+    def test_only_status_and_reason_fields(self) -> None:
+        """LLM output must NOT echo back inputs (trust boundary)."""
+        obj = InternalDateClassification(
+            status=TemporalStatus.EXPIRED,
+            reason="Before the reference date.",
+        )
+        dumped = obj.model_dump()
+        assert set(dumped.keys()) == {"status", "reason"}
 
 
 class TestPart2Evidence:
+    def _make_usage(self) -> ModelUsage:
+        return ModelUsage(requested_model="gemini-3.6-flash", actual_model="gemini-3.6-flash")
+
     def test_valid_construction(self) -> None:
         ev = Part2Evidence(
             source_page=1,
@@ -99,6 +111,11 @@ class TestPart2Evidence:
             reference_date="2024-01-01",
             llm_status="Upcoming",
             llm_rationale="The date is after the reference date.",
+            model_usage=PerOperationModelUsage(
+                date_extraction=self._make_usage(),
+                tool_selection=self._make_usage(),
+                classification=self._make_usage(),
+            ),
         )
         assert ev.source_page == 1
         assert ev.source_validation_passed is True
