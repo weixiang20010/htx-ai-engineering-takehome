@@ -224,7 +224,7 @@ async def _assess(
 
 
 def _should_continue(state: SpecialistState) -> str:
-    """Routing function for the specialist loop."""
+    """Routing function for the specialist loop (after assess)."""
     stop = state.get("stop_reason")
     if stop:
         return "extract_facts"
@@ -234,6 +234,28 @@ def _should_continue(state: SpecialistState) -> str:
     if assessment and not assessment.sufficient:
         return "reformulate"
     return "extract_facts"
+
+
+def _should_continue_after_extract(state: SpecialistState) -> str:
+    """Routing function after extract_facts.
+
+    Route to END if the agent succeeded, a terminal stop condition is set, or
+    the attempt ceiling is reached.  Otherwise, route back through reformulation
+    so the agent can search for the still-missing grounded aspects.
+    Note: 'ready_to_extract' is a routing signal from _assess, not a terminal
+    stop; it must NOT prevent re-entry into the retrieval loop.
+    """
+    if state.get("status") == AgentStatus.SUCCESS:
+        return "__end__"
+    stop = state.get("stop_reason")
+    # Only terminal stops end the loop; 'ready_to_extract' is an internal signal.
+    if stop and stop != "ready_to_extract":
+        return "__end__"
+    if state["attempt"] >= MAX_RETRIEVAL_ATTEMPTS:
+        return "__end__"
+    # INSUFFICIENT_EVIDENCE with attempts remaining — reformulate using
+    # the post-grounding missing_aspects, not the pre-extraction assessment.
+    return "reformulate"
 
 
 async def _reformulate(
@@ -255,7 +277,14 @@ async def _reformulate(
 
     if not new_query:
         # Fallback: ask the reasoning model to reformulate.
-        missing = assessment.missing_aspects if assessment else state["required_aspects"]
+        # Prefer post-grounding missing_aspects (set by _extract_facts) over the
+        # pre-extraction assessment's list, which may be empty when the assessor
+        # was optimistic but grounding later rejected all extracted facts.
+        missing = (
+            state.get("missing_aspects")  # post-grounding (non-empty after failed extraction)
+            or (assessment.missing_aspects if assessment else None)
+            or state["required_aspects"]
+        )
         aspects_str = "\n".join(f"  - {a}" for a in missing)
         prev_queries = "\n".join(f"  - {q}" for q in state["search_queries"])
 
@@ -450,7 +479,11 @@ def build_specialist_runner(
         {"reformulate": "reformulate", "extract_facts": "extract_facts"},
     )
     g.add_edge("reformulate", "retrieve")
-    g.add_edge("extract_facts", END)
+    g.add_conditional_edges(
+        "extract_facts",
+        _should_continue_after_extract,
+        {"__end__": END, "reformulate": "reformulate"},
+    )
 
     subgraph = g.compile()
 

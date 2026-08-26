@@ -182,9 +182,12 @@ def classify_date(
         )
         retried = True
         remaining_conflict = _consistency_conflict(interp, classification.status, normalized_date)
-        if remaining_conflict:
-            logger.warning(
-                "[Part2] Classification still inconsistent after retry: %s", classification.status
+        consistent = remaining_conflict is None
+        if not consistent:
+            raise ValueError(
+                f"Classification remained inconsistent after retry. "
+                f"Interpretation: {interp.temporal_type}/{interp.relation}/explicit_end={interp.has_explicit_end}. "
+                f"Status: {classification.status}. Conflict: {remaining_conflict}"
             )
 
     return ClassificationResult(

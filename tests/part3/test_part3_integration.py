@@ -48,14 +48,18 @@ async def retriever():
     return r
 
 
-@pytest.mark.asyncio
-async def test_required_htx_query_routes_both_agents(retriever):
+@pytest.fixture(scope="module")
+async def required_htx_state(retriever):
+    """Run the required HTX query exactly once; all three assertion tests share this state."""
     from src.part3.graph import run_query
+    return await run_query(REQUIRED_HTX_QUERY, retriever)
+
+
+@pytest.mark.asyncio
+async def test_required_htx_query_routes_both_agents(required_htx_state):
     from src.part3.models import AgentName
 
-    final_state = await run_query(REQUIRED_HTX_QUERY, retriever)
-
-    routing = final_state.get("routing")
+    routing = required_htx_state.get("routing")
     assert routing is not None, "Supervisor must produce a routing decision"
     agents = routing.selected_agents
     assert AgentName.REVENUE in agents, "Revenue agent must be selected"
@@ -63,21 +67,34 @@ async def test_required_htx_query_routes_both_agents(retriever):
 
 
 @pytest.mark.asyncio
-async def test_required_htx_query_produces_final_answer(retriever):
-    from src.part3.graph import run_query
+async def test_required_htx_query_both_agents_succeed(required_htx_state):
+    from src.part3.models import AgentStatus
 
-    final_state = await run_query(REQUIRED_HTX_QUERY, retriever)
-    answer = final_state.get("final_answer")
+    revenue = required_htx_state.get("revenue_result")
+    expenditure = required_htx_state.get("expenditure_result")
+
+    assert revenue is not None, "Revenue result must be present"
+    assert expenditure is not None, "Expenditure result must be present"
+    assert revenue.status == AgentStatus.SUCCESS, (
+        f"Revenue agent must succeed for this source document; got {revenue.status}"
+    )
+    assert expenditure.status == AgentStatus.SUCCESS, (
+        f"Expenditure agent must succeed for this source document; got {expenditure.status}"
+    )
+    assert revenue.facts, "Revenue agent must return at least one grounded fact"
+    assert expenditure.facts, "Expenditure agent must return at least one grounded fact"
+
+
+@pytest.mark.asyncio
+async def test_required_htx_query_produces_final_answer(required_htx_state):
+    answer = required_htx_state.get("final_answer")
     assert answer, "A final answer must be produced"
     assert len(answer) > 50, "Final answer should be substantive"
 
 
 @pytest.mark.asyncio
-async def test_required_htx_query_emits_trace(retriever):
-    from src.part3.graph import run_query
-
-    final_state = await run_query(REQUIRED_HTX_QUERY, retriever)
-    trace = final_state.get("trace", [])
+async def test_required_htx_query_emits_trace(required_htx_state):
+    trace = required_htx_state.get("trace", [])
     assert len(trace) >= 3, "At least supervisor + one agent + synthesis trace events expected"
     nodes_seen = {e.node for e in trace}
     assert "supervisor" in nodes_seen

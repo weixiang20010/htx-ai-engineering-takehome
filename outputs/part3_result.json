@@ -1,12 +1,12 @@
 {
   "query": "What are the key government revenue streams, and how will the Budget for the Future Energy Fund be supported?",
-  "answer": "Based on the provided findings:\n\n* **Key government revenue streams:** The evidence is insufficient to answer what the main sources of total revenue or the primary tax and non-tax revenue components are.\n* **Support for the Future Energy Fund:** The Government will establish the Future Energy Fund with an initial injection of $5.0 billion (or an estimated FY2024 top-up of $5,000 million) to invest in critical infrastructure for the energy transition [p. 18, 20].",
+  "answer": "Based on the findings provided, here are the key government revenue streams and the support for the Future Energy Fund:\n\n**Key Government Revenue Streams**\n* Total Revenue is composed of Operating Revenue and NIRC [p. 9].\n* Operating Revenue, which includes tax and non-tax revenues, made up 82.0% of Total Revenue in FY2023 [p. 9]. The revised FY2023 Operating Revenue is $104.3 billion, and the estimated FY2024 Operating Revenue is $108.6 billion (15.1% of GDP) [p. 5, 13].\n* NIRC makes up the remaining 18.0% of Total Revenue in FY2023 [p. 9].\n\n**Support for the Future Energy Fund**\n* The Government will establish the Future Energy Fund with an initial injection of $5.0 billion to invest in critical infrastructure for the energy transition [p. 18].\n* The estimated top-up to the Future Energy Fund for FY2024 is $5,000 million [p. 20].",
   "agents_used": [
     "revenue",
     "expenditure"
   ],
   "agent_statuses": {
-    "revenue": "insufficient_evidence",
+    "revenue": "success",
     "expenditure": "success"
   }
 }

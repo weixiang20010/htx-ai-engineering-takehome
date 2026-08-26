@@ -289,7 +289,7 @@ The distinction between **Expired** and **Ongoing** requires semantic context:
 
 > *"Estate Duty does not apply to a person who dies after 15 February 2008."*
 
-The date `2008-02-15` is before the reference date `2024-01-01`, which a simple date comparison classifies as Expired. However, the source uses the date as a threshold — "after 15 February 2008" — and states no end date, so the condition still governs all deaths in 2024. A regex-over-date approach cannot make this distinction.
+The date `2008-02-15` is before the reference date `2024-01-01`, which a simple date comparison classifies as Expired. However, I interpret this as **Ongoing** because the source describes an open-ended condition applying after the cutoff date, with no stated end date — the condition still governs all deaths in 2024. A regex-over-date approach cannot make this distinction.
 
 Rather than asking the model to resolve temporal semantics and classification in one step (which a lightweight model can get wrong), the classifier is split into two calls. First it produces a structured `TemporalInterpretation` describing how the date functions grammatically — whether it is a point event, a period, or a cutoff/threshold, and what directional relation ("after", "until", "on", …) the text expresses. The classification step then receives this structured reading as explicit context, so its task is narrower: label selection given a known temporal structure. A deterministic consistency checker validates the result and issues one LLM retry if the classification contradicts the interpretation. This decomposition makes the behaviour of a lightweight model reliable on ambiguous cases without hard-coding any answer.
 
@@ -364,7 +364,7 @@ Confirmed by inspecting the physical page content: the distribution date appears
 
 ### Estate Duty: Ongoing vs Expired disambiguation
 
-A naive date-comparison rule classifies `2008-02-15` as **Expired** (before the 2024-01-01 reference date), and this is what the model produces when asked to classify directly. The correct interpretation is **Ongoing** because the source sentence applies to persons who die "after 15 February 2008" with no stated end date — the condition still governs all deaths in 2024.
+A naive date-comparison rule classifies `2008-02-15` as **Expired** (before the 2024-01-01 reference date), and this is what the model produces when asked to classify directly. I interpret this as **Ongoing** because the source describes an open-ended condition applying after the cutoff date, with no stated end date — the condition still governs all deaths in 2024.
 
 To make this reliable without hardcoding the answer, the classifier now uses two steps. First it produces a structured `TemporalInterpretation` from the source sentence (`temporal_type=cutoff_or_threshold`, `relation=after`, `has_explicit_end=false`). Then it classifies using that interpretation as explicit context. A deterministic consistency checker then validates the result: an open-ended after-cutoff condition cannot be `Expired`. If the LLM's first classification contradicts the interpretation it was given, one retry is issued with the specific conflict described. This is sufficient — on the retry the model produces `Ongoing`.
 

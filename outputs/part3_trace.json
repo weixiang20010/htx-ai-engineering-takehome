@@ -8,23 +8,24 @@
         "revenue",
         "expenditure"
       ],
-      "reason": "The query requires analyzing both government revenue streams and specific fund allocations handled by expenditure.",
+      "reason": "The query requires analyzing both government income streams and specific fund allocations.",
       "revenue_task": {
         "task": "Identify and explain the key government revenue streams.",
         "required_aspects": [
           "What are the main sources of total revenue?",
-          "What are the primary tax and non-tax revenue components?"
+          "What are the contributions from taxes and non-tax revenue?",
+          "What is the role of the Net Investment Returns Contribution (NIRC)?"
         ]
       },
       "expenditure_task": {
-        "task": "Investigate how the Budget for the Future Energy Fund will be supported and allocated.",
+        "task": "Investigate how the Budget for the Future Energy Fund will be supported and funded.",
         "required_aspects": [
-          "What are the allocations for the Future Energy Fund?",
-          "How are specific funds and endowments supported through government expenditure or transfers?"
+          "What is the allocation for the Future Energy Fund?",
+          "Are there specific special transfers or top-ups supporting this fund?"
         ]
       }
     },
-    "timestamp": "2026-08-26T07:15:11.693961+00:00"
+    "timestamp": "2026-08-26T08:52:24.401778+00:00"
   },
   {
     "sequence": 0,
@@ -36,19 +37,19 @@
       "new_chunks": 8,
       "evidence_pool_size": 8
     },
-    "timestamp": "2026-08-26T07:15:12.179918+00:00"
+    "timestamp": "2026-08-26T08:52:24.869599+00:00"
   },
   {
     "sequence": 0,
     "node": "expenditure",
     "action": "retrieval_attempt_1",
     "details": {
-      "query": "Investigate how the Budget for the Future Energy Fund will be supported and allocated.",
+      "query": "Investigate how the Budget for the Future Energy Fund will be supported and funded.",
       "chunks_retrieved": 8,
       "new_chunks": 8,
       "evidence_pool_size": 8
     },
-    "timestamp": "2026-08-26T07:15:12.194905+00:00"
+    "timestamp": "2026-08-26T08:52:24.912703+00:00"
   },
   {
     "sequence": 1,
@@ -58,11 +59,12 @@
       "sufficient": true,
       "supported": [
         "What are the main sources of total revenue?",
-        "What are the primary tax and non-tax revenue components?"
+        "What are the contributions from taxes and non-tax revenue?",
+        "What is the role of the Net Investment Returns Contribution (NIRC)?"
       ],
       "missing": []
     },
-    "timestamp": "2026-08-26T07:15:13.257599+00:00"
+    "timestamp": "2026-08-26T08:52:26.255060+00:00"
   },
   {
     "sequence": 1,
@@ -71,29 +73,12 @@
     "details": {
       "sufficient": true,
       "supported": [
-        "What are the allocations for the Future Energy Fund?",
-        "How are specific funds and endowments supported through government expenditure or transfers?"
+        "What is the allocation for the Future Energy Fund?",
+        "Are there specific special transfers or top-ups supporting this fund?"
       ],
       "missing": []
     },
-    "timestamp": "2026-08-26T07:15:13.574527+00:00"
-  },
-  {
-    "sequence": 1,
-    "node": "revenue",
-    "action": "extract_facts",
-    "details": {
-      "facts_extracted": 0,
-      "facts_validated": 0,
-      "covered_aspects": [],
-      "missing_aspects": [
-        "What are the main sources of total revenue?",
-        "What are the primary tax and non-tax revenue components?"
-      ],
-      "status": "insufficient_evidence",
-      "stop_reason": "ready_to_extract"
-    },
-    "timestamp": "2026-08-26T07:15:14.823143+00:00"
+    "timestamp": "2026-08-26T08:52:26.348478+00:00"
   },
   {
     "sequence": 1,
@@ -103,14 +88,32 @@
       "facts_extracted": 2,
       "facts_validated": 2,
       "covered_aspects": [
-        "How are specific funds and endowments supported through government expenditure or transfers?",
-        "What are the allocations for the Future Energy Fund?"
+        "Are there specific special transfers or top-ups supporting this fund?",
+        "What is the allocation for the Future Energy Fund?"
       ],
       "missing_aspects": [],
       "status": "success",
       "stop_reason": "ready_to_extract"
     },
-    "timestamp": "2026-08-26T07:15:15.444005+00:00"
+    "timestamp": "2026-08-26T08:52:28.589986+00:00"
+  },
+  {
+    "sequence": 1,
+    "node": "revenue",
+    "action": "extract_facts",
+    "details": {
+      "facts_extracted": 5,
+      "facts_validated": 5,
+      "covered_aspects": [
+        "What are the contributions from taxes and non-tax revenue?",
+        "What are the main sources of total revenue?",
+        "What is the role of the Net Investment Returns Contribution (NIRC)?"
+      ],
+      "missing_aspects": [],
+      "status": "success",
+      "stop_reason": "ready_to_extract"
+    },
+    "timestamp": "2026-08-26T08:52:28.974219+00:00"
   },
   {
     "sequence": 0,
@@ -121,8 +124,8 @@
         "revenue",
         "expenditure"
       ],
-      "answer_length": 466
+      "answer_length": 843
     },
-    "timestamp": "2026-08-26T07:15:16.696405+00:00"
+    "timestamp": "2026-08-26T08:52:30.914506+00:00"
   }
 ]
