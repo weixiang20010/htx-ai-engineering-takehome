@@ -62,12 +62,12 @@
       "temporal_type": "cutoff_or_threshold",
       "relation": "after",
       "has_explicit_end": false,
-      "brief_reason": "The date acts as a threshold boundary after which the estate duty exemption applies, with no explicit end date stated."
+      "brief_reason": "The date acts as a threshold boundary after which the estate duty exemption applies."
     },
-    "consistency_check_passed": false,
-    "classification_retried": true,
+    "consistency_check_passed": true,
+    "classification_retried": false,
     "llm_status": "Ongoing",
-    "llm_rationale": "The threshold date of February 15, 2008, occurred in the past, and since the condition is open-ended with no explicit end date, it remains active relative to the reference date.",
+    "llm_rationale": "The date 2008-02-15 marks the beginning of an open-ended rule that remains applicable on the reference date of 2024-01-01.",
     "model_usage": {
       "date_extraction": {
         "requested_model": "gemini-3.5-flash-lite",

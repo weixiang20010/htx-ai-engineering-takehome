@@ -29,7 +29,6 @@ dominating purely on rank position.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import ClassVar
 
 import numpy as np
@@ -63,7 +62,6 @@ class HybridRRFRetriever:
         self._chunks = chunks
         self._ids = [c.chunk_id for c in chunks]
         self._texts = [c.text for c in chunks]
-        self._id_to_idx: dict[str, int] = {cid: i for i, cid in enumerate(self._ids)}
 
         # BM25 index — built synchronously, no API calls required.
         tokenized = [t.lower().split() for t in self._texts]

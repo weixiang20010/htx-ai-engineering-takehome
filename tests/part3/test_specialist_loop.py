@@ -17,6 +17,7 @@ from src.part3.models import (
     EvidenceAssessment,
     GroundedFact,
     GroundedFactsResult,
+    MAX_RETRIEVAL_ATTEMPTS,
     RetrievedChunk,
     SpecialistAgentConfig,
     SpecialistState,
@@ -145,3 +146,74 @@ def test_should_extract_when_repeated_query():
     state["evidence_assessment"] = _insufficient_assessment()
     state["stop_reason"] = "repeated_query"
     assert _should_continue(state) == "extract_facts"
+
+
+# ---------------------------------------------------------------------------
+# _should_continue_after_extract decision logic
+# ---------------------------------------------------------------------------
+
+
+def test_after_extract_success_ends():
+    """SUCCESS always routes to __end__ regardless of other state."""
+    from src.part3.specialist import _should_continue_after_extract
+
+    state = _initial_specialist_state()
+    state["status"] = AgentStatus.SUCCESS
+    assert _should_continue_after_extract(state) == "__end__"
+
+
+def test_after_extract_success_ends_even_with_ready_to_extract():
+    """SUCCESS overrides all stop_reason values."""
+    from src.part3.specialist import _should_continue_after_extract
+
+    state = _initial_specialist_state()
+    state["status"] = AgentStatus.SUCCESS
+    state["stop_reason"] = "ready_to_extract"
+    assert _should_continue_after_extract(state) == "__end__"
+
+
+def test_after_extract_ready_to_extract_routes_to_reformulate():
+    """'ready_to_extract' is an internal routing signal, not a terminal stop."""
+    from src.part3.specialist import _should_continue_after_extract
+
+    state = _initial_specialist_state()
+    state["status"] = AgentStatus.INSUFFICIENT_EVIDENCE
+    state["stop_reason"] = "ready_to_extract"
+    state["attempt"] = 1  # below ceiling
+    assert _should_continue_after_extract(state) == "reformulate"
+
+
+def test_after_extract_terminal_stop_ends():
+    """Terminal stop reasons end the loop even if attempts remain."""
+    from src.part3.specialist import _should_continue_after_extract
+
+    for stop in ("no_new_evidence", "repeated_query", "error", "max_attempts"):
+        state = _initial_specialist_state()
+        state["status"] = AgentStatus.INSUFFICIENT_EVIDENCE
+        state["stop_reason"] = stop
+        state["attempt"] = 1
+        assert _should_continue_after_extract(state) == "__end__", (
+            f"Expected __end__ for stop_reason={stop!r}"
+        )
+
+
+def test_after_extract_max_attempts_ends():
+    """Hitting the attempt ceiling ends the loop regardless of stop_reason."""
+    from src.part3.specialist import _should_continue_after_extract
+
+    state = _initial_specialist_state()
+    state["status"] = AgentStatus.INSUFFICIENT_EVIDENCE
+    state["stop_reason"] = None
+    state["attempt"] = MAX_RETRIEVAL_ATTEMPTS
+    assert _should_continue_after_extract(state) == "__end__"
+
+
+def test_after_extract_no_stop_reason_routes_to_reformulate():
+    """No stop_reason with attempts remaining → reformulate for another pass."""
+    from src.part3.specialist import _should_continue_after_extract
+
+    state = _initial_specialist_state()
+    state["status"] = AgentStatus.INSUFFICIENT_EVIDENCE
+    state["stop_reason"] = None
+    state["attempt"] = 1
+    assert _should_continue_after_extract(state) == "reformulate"

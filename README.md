@@ -448,17 +448,24 @@ graph.add_edge("expenditure_agent", "synthesis")
 Each specialist (`src/part3/specialist.py`) runs an internal subgraph:
 
 ```
-START → retrieve → assess → [sufficient?] → extract_facts → END
-                        └──→ reformulate ──→ retrieve (loop)
+START → retrieve → assess → [sufficient?] → extract_facts
+                       │                          │
+                   reformulate         grounded facts cover all required aspects?
+                       ▲               │                    │
+                       └── (retry) ── no                  yes
+                                                            │
+                                                           END
 ```
 
+The agent succeeds only when validated grounded facts collectively cover all required aspects. An initial evidence-sufficiency assessment allows fact extraction to begin, but if grounding rejects facts or leaves aspects uncovered, the specialist returns to retrieval and reformulation while attempts remain.
+
 The loop terminates when any of the following conditions holds:
-- Evidence is assessed as sufficient for all required aspects.
+- Grounded facts cover all required aspects (SUCCESS).
 - Maximum retrieval attempts (3) are exhausted.
 - No new chunks were retrieved (no new evidence available).
 - The reformulated query is identical to a previously issued query (repeated query guard).
 
-This bounded loop prevents infinite retries while still allowing the agent to recover from initial sparse retrieval.
+This design means a falsely optimistic evidence assessment cannot bypass grounding: the final gate is always the validated fact set, not the LLM's self-assessment.
 
 #### Hybrid BM25 + semantic retrieval (RRF)
 

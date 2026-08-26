@@ -35,12 +35,11 @@ configured for one role, suitable for use as a LangGraph node.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 from langchain_core.runnables import Runnable
 
-from ..llm import ModelUsage, ainvoke_with_fallback
+from ..llm import ainvoke_with_fallback
 from .grounding import ExtractionValidationError, validate_grounded_fact
 from .models import (
     MAX_RETRIEVAL_ATTEMPTS,
@@ -181,9 +180,6 @@ async def _assess(
     evidence_text = _build_evidence_text(state["evidence_pool"])
     aspects_list = "\n".join(f"  - {a}" for a in state["required_aspects"])
 
-    structured_llm = extraction_llm.with_structured_output(EvidenceAssessment)
-    chain = EVIDENCE_ASSESSMENT_PROMPT | structured_llm
-
     assessment, _ = await ainvoke_with_fallback(
         lambda llm: EVIDENCE_ASSESSMENT_PROMPT
         | llm.with_structured_output(EvidenceAssessment),
@@ -195,7 +191,6 @@ async def _assess(
         extraction_llm,
         extraction_fallback,
     )
-    _ = chain  # chain is built dynamically; kept for clarity
 
     stop_reason = state.get("stop_reason")
     # Record LLM assessment as "ready_to_extract" rather than "success";

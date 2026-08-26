@@ -177,7 +177,7 @@ class SpecialistState(TypedDict):
     evidence_pool: list[RetrievedChunk]  # unique chunks accumulated across attempts
     seen_chunk_ids: list[str]  # chunk_ids already in evidence_pool
     evidence_assessment: EvidenceAssessment | None
-    stop_reason: str | None  # "success"|"max_attempts"|"no_new_evidence"|"repeated_query"|"error"
+    stop_reason: str | None  # "max_attempts"|"no_new_evidence"|"repeated_query"|"error"
 
     # ── Output ───────────────────────────────────────────────────────────────
     status: str | None  # AgentStatus value

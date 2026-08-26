@@ -1,5 +1,5 @@
 """
-Shared LLM factory and resilience layer for Parts 1 and 2.
+Shared LLM factory and resilience layer for Parts 1–3.
 
 Task-specific model pairs
 -------------------------
@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import logging
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable
 
 from langchain_core.runnables import Runnable
