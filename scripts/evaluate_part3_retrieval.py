@@ -94,10 +94,12 @@ async def run_benchmark() -> None:
 
         def summarize(chunks):
             pages_found = [c.chunk.page for c in chunks]
-            relevant_hit = [p for p in pages_found if p in relevant]
+            # Use unique pages — multiple chunks from the same page count once.
+            unique_pages_found = set(pages_found)
+            relevant_hit = unique_pages_found & relevant
             return {
                 "top_pages": pages_found,
-                "relevant_pages_hit": relevant_hit,
+                "relevant_pages_hit": sorted(relevant_hit),
                 "hit_rate": len(relevant_hit) / max(len(relevant), 1),
                 "top_chunks": [
                     {
