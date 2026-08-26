@@ -73,11 +73,14 @@ def build_synthesis_node(
             reasoning_llm,
             reasoning_fallback,
         )
-        answer = (
-            answer_raw.content.strip()
-            if hasattr(answer_raw, "content")
-            else str(answer_raw).strip()
-        )
+        content = answer_raw.content if hasattr(answer_raw, "content") else answer_raw
+        if isinstance(content, list):
+            # Gemini can return a list of content parts; extract text from each
+            answer = " ".join(
+                p.get("text", "") if isinstance(p, dict) else str(p) for p in content
+            ).strip()
+        else:
+            answer = str(content).strip()
 
         agents_used = []
         if revenue_result is not None:

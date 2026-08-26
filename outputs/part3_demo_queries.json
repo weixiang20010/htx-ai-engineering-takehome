@@ -1,0 +1,90 @@
+[
+  {
+    "query_id": "A",
+    "label": "Revenue only",
+    "query": "What are the key government revenue streams?",
+    "expected_agents": [
+      "revenue"
+    ],
+    "actual_agents": [
+      "revenue"
+    ],
+    "routing_correct": true,
+    "answer": "Based on the findings provided:\n\n* **Major Tax Revenue Categories:** The key tax revenue categories include Corporate Income Tax, Personal Income Tax, Goods and Services Tax, Assets Taxes, Stamp Duty, Other Taxes, Vehicle Quota Premiums, Customs, Excise and Carbon Taxes, Betting Taxes, Motor Vehicle Taxes, and Withholding Tax [p. 9]. \n* **Other Revenue Streams:** The Net Investment Returns Contribution (NIRC) is recorded at $22.9 billion for Revised FY2023 [p. 7] and an estimated $23.5 billion for FY2024 [p. 15].\n\nEvidence was insufficient to fully answer what the main non-tax revenue streams are [Revenue Agent].",
+    "agents_used": [
+      "revenue"
+    ],
+    "agent_statuses": {
+      "revenue": "insufficient_evidence"
+    },
+    "routing_reason": "The query specifically asks about government revenue streams, which falls under the purview of the revenue agent."
+  },
+  {
+    "query_id": "B",
+    "label": "Expenditure only",
+    "query": "How will the Future Energy Fund be supported?",
+    "expected_agents": [
+      "expenditure"
+    ],
+    "actual_agents": [
+      "expenditure"
+    ],
+    "routing_correct": true,
+    "answer": "Based on the provided findings, the Future Energy Fund will be supported by an initial injection of $5.0 billion from the Government to invest in critical infrastructure for the energy transition [p. 18].",
+    "agents_used": [
+      "expenditure"
+    ],
+    "agent_statuses": {
+      "expenditure": "success"
+    },
+    "routing_reason": "The query asks about the support and funding mechanisms for a specific government fund, which falls under expenditure."
+  },
+  {
+    "query_id": "C",
+    "label": "Required HTX query",
+    "query": "What are the key government revenue streams, and how will the Budget for the Future Energy Fund be supported?",
+    "expected_agents": [
+      "revenue",
+      "expenditure"
+    ],
+    "actual_agents": [
+      "revenue",
+      "expenditure"
+    ],
+    "routing_correct": true,
+    "answer": "Based on the provided findings:\n\n* **Key government revenue streams:** The evidence is insufficient to answer what the main sources of total revenue or the primary tax and non-tax revenue components are.\n* **Support for the Future Energy Fund:** The Government will establish the Future Energy Fund with an initial injection of $5.0 billion (or an estimated FY2024 top-up of $5,000 million) to invest in critical infrastructure for the energy transition [p. 18, 20].",
+    "agents_used": [
+      "revenue",
+      "expenditure"
+    ],
+    "agent_statuses": {
+      "revenue": "insufficient_evidence",
+      "expenditure": "success"
+    },
+    "routing_reason": "The query requires analyzing both government revenue streams and specific fund allocations handled by expenditure."
+  },
+  {
+    "query_id": "D",
+    "label": "Mixed comparison",
+    "query": "How does the government's revenue outlook compare to its planned spending on endowment and trust funds in FY2024?",
+    "expected_agents": [
+      "revenue",
+      "expenditure"
+    ],
+    "actual_agents": [
+      "revenue",
+      "expenditure"
+    ],
+    "routing_correct": true,
+    "answer": "Based on the provided findings, the government's revenue outlook and planned spending on endowment and trust funds for FY2024 are as follows:\n\n* **Revenue Outlook:** The estimated FY2024 Operating Revenue is $108.6 billion (15.1% of GDP) [p. 13]. This increase relative to the revised FY2023 is mainly driven by higher expected collections from Goods and Services Tax ($19.4 billion), Assets Taxes ($6.7 billion), Personal Income Tax ($18.1 billion), and Motor Vehicle Taxes, which are partially offset by an expected decrease in Statutory Boards’ Contributions [p. 13].\n* **Planned Spending on Endowment and Trust Funds:** The total planned top-ups to endowment and trust funds in FY2024 is $20.4 billion [p. 13]. Specific fund top-ups include:\n  * Goods and Services Tax Voucher Fund: $6,000 million [p. 20]\n  * Future Energy Fund: $5,000 million [p. 20]\n  * Edusave Endowment Fund: $2,000 million [p. 20]\n  * Financial Sector Development Fund: $2,000 million [p. 20]\n  * National Productivity Fund: $2,000 million [p. 20]\n  * National Research Fund: $1,800 million [p. 20]\n  * Progressive Wage Credit Scheme Fund: $1,000 million [p. 20]\n  * Skills Development Fund: $500 million [p. 20]\n  * Public Transport Fund: $50 million [p. 20]\n  * Legal Aid Fund: $2 million [p. 20]",
+    "agents_used": [
+      "revenue",
+      "expenditure"
+    ],
+    "agent_statuses": {
+      "revenue": "success",
+      "expenditure": "success"
+    },
+    "routing_reason": "The query requires analyzing both government revenue projections and planned spending allocations for FY2024."
+  }
+]

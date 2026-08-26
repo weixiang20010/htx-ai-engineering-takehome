@@ -6,7 +6,7 @@
 
 ## My approach
 
-This solution uses LLMs only where semantic interpretation genuinely adds value and keeps deterministic operations in Python. In Parts 1 and 2, the assessment specifies exactly which pages to inspect, so I avoided adding retrieval entirely — the LLM identifies evidence and the model verifies it deterministically. Part 2 adds MCP as a tool boundary so that date normalisation (a deterministic task) stays in pure Python while Gemini handles temporal reasoning. Part 3 is the first point where the relevant pages are unknown and must be found from a question alone; that is where I introduce hybrid retrieval and a LangGraph supervisor. The progression is intentional: each part adds exactly the machinery the problem requires and no more.
+This solution uses LLMs only where semantic interpretation genuinely adds value and keeps deterministic operations in Python. In Parts 1 and 2, the assessment specifies exactly which pages to inspect, so I avoided adding retrieval entirely — the LLM identifies evidence and Python verifies it deterministically. Part 2 adds MCP as a tool boundary so that date normalisation (a deterministic task) stays in pure Python while Gemini handles temporal reasoning. Part 3 is the first point where the relevant pages are unknown and must be found from a question alone; that is where I introduce hybrid retrieval and a LangGraph supervisor. The progression is intentional: each part adds exactly the machinery the problem requires and no more.
 
 ---
 
@@ -54,8 +54,8 @@ Outputs:
 | `GEMINI_API_KEY` | Google Gemini API key |
 | `GEMINI_EXTRACTION_MODEL` | Model for extraction tasks (default: `gemini-3.5-flash-lite`, ~500 RPD on the development project's free-tier quota) |
 | `GEMINI_EXTRACTION_FALLBACK_MODEL` | Fallback for extraction on quota/rate-limit errors (default: `gemini-3.1-flash-lite`) |
-| `GEMINI_REASONING_MODEL` | Model for reasoning + tool-selection tasks (default: `gemini-3.6-flash`, ~20 RPD on the development project's free-tier quota) |
-| `GEMINI_REASONING_FALLBACK_MODEL` | Fallback for reasoning on quota/rate-limit errors (default: `gemini-3.5-flash-lite`) |
+| `GEMINI_REASONING_MODEL` | Model for reasoning + tool-selection tasks (default: `gemini-3.5-flash-lite`, ~500 RPD on the development project's free-tier quota) |
+| `GEMINI_REASONING_FALLBACK_MODEL` | Fallback for reasoning on quota/rate-limit errors (unset by default — quota failures surface clearly rather than silently downgrading) |
 | `SOURCE_PDF` | Path to the data-source PDF (default: `data/fy2024_analysis_of_revenue_and_expenditure.pdf`) |
 
 ---
@@ -289,7 +289,9 @@ The distinction between **Expired** and **Ongoing** requires semantic context:
 
 > *"Estate Duty does not apply to a person who dies after 15 February 2008."*
 
-The date `2008-02-15` is before the reference date `2024-01-01`, which a simple date comparison would classify as Expired. However, the source uses the date as a threshold — "after 15 February 2008" — and states no end date. I therefore interpret it as an open-ended condition that includes the reference date, resulting in `Ongoing`. A regex-over-date approach cannot make this distinction. The LLM receives both `original_text` and `normalized_date` so it can reason about whether the date marks a boundary of an ongoing rule, a past event, or a future event.
+The date `2008-02-15` is before the reference date `2024-01-01`, which a simple date comparison classifies as Expired. However, the source uses the date as a threshold — "after 15 February 2008" — and states no end date, so the condition still governs all deaths in 2024. A regex-over-date approach cannot make this distinction.
+
+Rather than asking the model to resolve temporal semantics and classification in one step (which a lightweight model can get wrong), the classifier is split into two calls. First it produces a structured `TemporalInterpretation` describing how the date functions grammatically — whether it is a point event, a period, or a cutoff/threshold, and what directional relation ("after", "until", "on", …) the text expresses. The classification step then receives this structured reading as explicit context, so its task is narrower: label selection given a known temporal structure. A deterministic consistency checker validates the result and issues one LLM retry if the classification contradicts the interpretation. This decomposition makes the behaviour of a lightweight model reliable on ambiguous cases without hard-coding any answer.
 
 ## Part 2 design decisions
 
@@ -325,9 +327,20 @@ PDF pages 1 and 36
        +-- normalize_date_value() -> ISO string
         |
         v
-   Gemini (with_structured_output -> InternalDateClassification)
+   Gemini — Step 1: temporal interpretation (with_structured_output -> TemporalInterpretation)
+   +-- temporal_type: point_event | period | cutoff_or_threshold
+   +-- relation: on | after | until | from | between | …
+   +-- has_explicit_end: bool
+        |
+        v
+   Gemini — Step 2: classification (with_structured_output -> InternalDateClassification)
    +-- status: Expired | Upcoming | Ongoing
    +-- reason: LLM rationale
+        |
+        v
+   Python consistency check
+   +-- detects contradictions (e.g. open-ended after-cutoff classified as Expired)
+   +-- issues one LLM retry with conflict described if contradictory
         |
         v
    Three JSON output files
@@ -351,7 +364,9 @@ Confirmed by inspecting the physical page content: the distribution date appears
 
 ### Estate Duty: Ongoing vs Expired disambiguation
 
-A pure date-comparison rule would classify `2008-02-15` as **Expired** (before the 2024-01-01 reference date). I interpret the Estate Duty statement as an open-ended condition because the source sentence applies to persons who die "after 15 February 2008" and states no end date. Under this interpretation, the condition includes the 2024-01-01 reference date and is classified as `Ongoing`. The LLM classification is consistent with this interpretation, and the integration test asserts this outcome.
+A naive date-comparison rule classifies `2008-02-15` as **Expired** (before the 2024-01-01 reference date), and this is what the model produces when asked to classify directly. The correct interpretation is **Ongoing** because the source sentence applies to persons who die "after 15 February 2008" with no stated end date — the condition still governs all deaths in 2024.
+
+To make this reliable without hardcoding the answer, the classifier now uses two steps. First it produces a structured `TemporalInterpretation` from the source sentence (`temporal_type=cutoff_or_threshold`, `relation=after`, `has_explicit_end=false`). Then it classifies using that interpretation as explicit context. A deterministic consistency checker then validates the result: an open-ended after-cutoff condition cannot be `Expired`. If the LLM's first classification contradicts the interpretation it was given, one retry is issued with the specific conflict described. This is sufficient — on the retry the model produces `Ongoing`.
 
 ---
 
@@ -364,9 +379,9 @@ src/part2/
   date_normalizer.py — Deterministic ISO conversion (no LLM, no MCP)
   mcp_server.py      — FastMCP server exposing normalize_date over stdio
   mcp_client.py      — Async context manager: start server, yield (session, lc_tools)
-  prompts.py         — ChatPromptTemplates for extraction and classification
+  prompts.py         — ChatPromptTemplates for extraction, interpretation, and classification
   date_extractor.py  — Gemini extraction + evidence validation
-  classifier.py      — Gemini temporal classification
+  classifier.py      — Two-step temporal classification: interpret → classify → consistency check
   workflow.py        — Async orchestration of all stages
 
 scripts/run_part2.py — Entry point; writes three output files
@@ -374,7 +389,8 @@ scripts/run_part2.py — Entry point; writes three output files
 tests/part2/
   test_date_normalizer.py           — 15 unit tests, no API
   test_date_extraction_validation.py — 8 validation tests, no API
-  test_models.py                    — 12 schema tests, no API
+  test_models.py                    — 15 schema tests, no API
+  test_classifier_consistency.py    — 13 deterministic consistency-checker tests, no API
   test_mcp_integration.py           — 5 real MCP boundary tests, no Gemini
   test_part2_integration.py         — end-to-end tests (require GEMINI_API_KEY)
 ```
@@ -454,7 +470,7 @@ $$\text{RRF}(d) = \sum_{r \in \{BM25,\ \text{semantic}\}} \frac{1}{K + \text{ran
 
 **Semantic embedding model:** `models/gemini-embedding-001` (supported through at least May 2028). The previously used `text-embedding-004` was deprecated by Google on 14 January 2026.
 
-**Why no vector database?** The corpus is ~62 chunks from a single 37-page PDF. Maintaining a vector DB introduces infrastructure cost and complexity without benefit at this scale. The in-memory semantic index is built once at startup in O(n) API calls.
+**Why no vector database?** The corpus is ~62 chunks from a single 37-page PDF. Maintaining a vector DB introduces infrastructure cost and complexity without benefit at this scale. The in-memory semantic index is built once at startup by embedding the 62 document chunks.
 
 #### Grounding and hallucination control
 

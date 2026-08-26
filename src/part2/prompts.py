@@ -54,6 +54,46 @@ Do not infer or compute a date. Do not normalise the date format.""",
     ]
 )
 
+INTERPRETATION_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are a temporal semantics analyst. Read a sentence that contains a date and
+describe how that date functions grammatically and semantically.
+
+Choose:
+  temporal_type:
+    point_event          — a single event or distribution that occurs on one specific date
+    period               — a span of time with a defined start and optional end
+    cutoff_or_threshold  — a boundary after/before which a condition, rule, or exemption applies
+
+  relation (the grammatical role of the date relative to the described condition):
+    on    — occurs on this date
+    after — condition applies after this date
+    before — condition applies before this date
+    from  — condition begins from this date
+    until — condition ends at this date
+    between — condition spans from one date to another
+    not_applicable — date does not express a directional relation
+
+  has_explicit_end:
+    true  — the source text contains a stated end date or expiry for this condition
+    false — no end date or expiry is stated in the source text
+
+Return a brief_reason: one sentence explaining your reading.""",
+        ),
+        (
+            "human",
+            """Source sentence:
+"{original_text}"
+
+Normalized date from that sentence: {normalized_date}
+
+Describe the temporal semantics of this date expression.""",
+        ),
+    ]
+)
+
 CLASSIFICATION_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
@@ -69,18 +109,13 @@ Allowed classifications:
   Ongoing  — A period or condition that began before or on the reference date and
               remains applicable on the reference date.
 
+You are provided with a structured temporal interpretation of the source sentence.
+Use it to guide your reasoning — do not contradict it without strong justification.
+
 Rules:
 - Use BOTH the original_text (semantic context) and the normalized_date.
 - The reference date is {reference_date}. Do NOT use today's date or any other date.
 - Do not use external knowledge.
-- For a cutoff or threshold date, apply this reasoning:
-    1. Identify what condition begins at or after the threshold.
-    2. Determine whether the text states an end date for that condition.
-    3. If the condition began before or on the reference date AND no end date before
-       the reference date is stated AND the condition still governs events on the
-       reference date → Ongoing.
-    4. Do not classify a past threshold as Expired solely because the threshold date
-       itself is before the reference date.
 - Return exactly one status from: Expired, Upcoming, Ongoing.
 - Give a concise rationale (one or two sentences). Do not output chain-of-thought.""",
         ),
@@ -91,7 +126,43 @@ Rules:
 
 Normalized date: {normalized_date}
 
+Temporal interpretation:
+  type     : {temporal_type}
+  relation : {relation}
+  open-ended (no explicit end): {open_ended}
+
 Classify this date relative to the reference date {reference_date}.""",
+        ),
+    ]
+)
+
+CLASSIFICATION_RETRY_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """You are classifying a date relative to a fixed reference date.
+
+Reference date: {reference_date}
+
+Allowed classifications: Expired, Upcoming, Ongoing.
+Give a concise rationale (one or two sentences). Do not output chain-of-thought.""",
+        ),
+        (
+            "human",
+            """Your previous classification conflicted with the temporal interpretation you were given.
+
+Original text: "{original_text}"
+Normalized date: {normalized_date}
+
+Temporal interpretation:
+  type     : {temporal_type}
+  relation : {relation}
+  open-ended (no explicit end): {open_ended}
+
+Previous classification: {previous_status}
+Conflict: {conflict_reason}
+
+Re-evaluate. Classify this date relative to the reference date {reference_date}.""",
         ),
     ]
 )

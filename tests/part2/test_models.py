@@ -1,17 +1,20 @@
 """Unit tests for Part 2 Pydantic models — no LLM, no MCP, no I/O."""
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date
 
 import pytest
 
 from src.part2.models import (
     REFERENCE_DATE,
+    ClassificationResult,
     ExtractedDate,
     InternalDateClassification,
     Part2Evidence,
     Part2ResultItem,
     PerOperationModelUsage,
+    TemporalInterpretation,
     TemporalStatus,
 )
 from src.llm import ModelUsage
@@ -76,7 +79,46 @@ class TestPart2ResultItem:
             assert item.status == status
 
 
-class TestInternalDateClassification:
+class TestTemporalInterpretation:
+    def test_valid_point_event(self) -> None:
+        obj = TemporalInterpretation(
+            temporal_type="point_event",
+            relation="on",
+            has_explicit_end=False,
+            brief_reason="The sentence describes a single event on a specific date.",
+        )
+        assert obj.temporal_type == "point_event"
+        assert not obj.has_explicit_end
+
+    def test_valid_cutoff_after(self) -> None:
+        obj = TemporalInterpretation(
+            temporal_type="cutoff_or_threshold",
+            relation="after",
+            has_explicit_end=False,
+            brief_reason="The condition applies after the threshold.",
+        )
+        assert obj.relation == "after"
+
+    def test_rejects_unknown_temporal_type(self) -> None:
+        with pytest.raises(Exception):
+            TemporalInterpretation(
+                temporal_type="unknown",  # type: ignore[arg-type]
+                relation="on",
+                has_explicit_end=False,
+                brief_reason=".",
+            )
+
+    def test_rejects_unknown_relation(self) -> None:
+        with pytest.raises(Exception):
+            TemporalInterpretation(
+                temporal_type="point_event",
+                relation="during",  # type: ignore[arg-type]
+                has_explicit_end=False,
+                brief_reason=".",
+            )
+
+
+
     def test_valid_construction(self) -> None:
         obj = InternalDateClassification(
             status=TemporalStatus.UPCOMING,
@@ -97,7 +139,15 @@ class TestInternalDateClassification:
 
 class TestPart2Evidence:
     def _make_usage(self) -> ModelUsage:
-        return ModelUsage(requested_model="gemini-3.6-flash", actual_model="gemini-3.6-flash")
+        return ModelUsage(requested_model="gemini-3.5-flash-lite", actual_model="gemini-3.5-flash-lite")
+
+    def _make_interpretation(self) -> TemporalInterpretation:
+        return TemporalInterpretation(
+            temporal_type="point_event",
+            relation="on",
+            has_explicit_end=False,
+            brief_reason="Single event.",
+        )
 
     def test_valid_construction(self) -> None:
         ev = Part2Evidence(
@@ -109,11 +159,15 @@ class TestPart2Evidence:
             mcp_tool_arguments={"date_text": "16 February 2024"},
             mcp_tool_result="2024-02-16",
             reference_date="2024-01-01",
+            temporal_interpretation=self._make_interpretation(),
+            consistency_check_passed=True,
+            classification_retried=False,
             llm_status="Upcoming",
             llm_rationale="The date is after the reference date.",
             model_usage=PerOperationModelUsage(
                 date_extraction=self._make_usage(),
                 tool_selection=self._make_usage(),
+                interpretation=self._make_usage(),
                 classification=self._make_usage(),
             ),
         )

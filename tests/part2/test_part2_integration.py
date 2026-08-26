@@ -93,7 +93,7 @@ class TestPart2Integration:
         assert dist.status == TemporalStatus.UPCOMING
 
     def test_estate_duty_date_is_classified_ongoing(self, part2_pipeline_output) -> None:
-        """15 February 2008 marks a continuing policy → Ongoing (not Expired)."""
+        """2008-02-15 is an open-ended after-cutoff → Ongoing (not Expired)."""
         _, results, _ = part2_pipeline_output
         estate = next(r for r in results if "15 February 2008" in r.original_text)
         assert estate.status == TemporalStatus.ONGOING

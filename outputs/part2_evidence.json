@@ -10,6 +10,14 @@
     },
     "mcp_tool_result": "2024-02-16",
     "reference_date": "2024-01-01",
+    "temporal_interpretation": {
+      "temporal_type": "point_event",
+      "relation": "on",
+      "has_explicit_end": false,
+      "brief_reason": "The date specifies the exact single day on which the distribution event occurs."
+    },
+    "consistency_check_passed": true,
+    "classification_retried": false,
     "llm_status": "Upcoming",
     "llm_rationale": "The date 2024-02-16 occurs after the reference date of 2024-01-01.",
     "model_usage": {
@@ -20,16 +28,22 @@
         "fallback_reason": null
       },
       "tool_selection": {
-        "requested_model": "gemini-3.6-flash",
-        "actual_model": "gemini-3.6-flash",
+        "requested_model": "gemini-3.5-flash-lite",
+        "actual_model": "gemini-3.5-flash-lite",
+        "fallback_used": false,
+        "fallback_reason": null
+      },
+      "interpretation": {
+        "requested_model": "gemini-3.5-flash-lite",
+        "actual_model": "gemini-3.5-flash-lite",
         "fallback_used": false,
         "fallback_reason": null
       },
       "classification": {
-        "requested_model": "gemini-3.6-flash",
+        "requested_model": "gemini-3.5-flash-lite",
         "actual_model": "gemini-3.5-flash-lite",
-        "fallback_used": true,
-        "fallback_reason": "quota_exceeded"
+        "fallback_used": false,
+        "fallback_reason": null
       }
     }
   },
@@ -44,8 +58,16 @@
     },
     "mcp_tool_result": "2008-02-15",
     "reference_date": "2024-01-01",
-    "llm_status": "Expired",
-    "llm_rationale": "The date February 15, 2008, occurred before the reference date of January 1, 2024, and represents a past cutoff point for the application of Estate Duty.",
+    "temporal_interpretation": {
+      "temporal_type": "cutoff_or_threshold",
+      "relation": "after",
+      "has_explicit_end": false,
+      "brief_reason": "The date acts as a threshold boundary after which the estate duty exemption applies, with no explicit end date stated."
+    },
+    "consistency_check_passed": false,
+    "classification_retried": true,
+    "llm_status": "Ongoing",
+    "llm_rationale": "The threshold date of February 15, 2008, occurred in the past, and since the condition is open-ended with no explicit end date, it remains active relative to the reference date.",
     "model_usage": {
       "date_extraction": {
         "requested_model": "gemini-3.5-flash-lite",
@@ -54,16 +76,22 @@
         "fallback_reason": null
       },
       "tool_selection": {
-        "requested_model": "gemini-3.6-flash",
+        "requested_model": "gemini-3.5-flash-lite",
         "actual_model": "gemini-3.5-flash-lite",
-        "fallback_used": true,
-        "fallback_reason": "quota_exceeded"
+        "fallback_used": false,
+        "fallback_reason": null
+      },
+      "interpretation": {
+        "requested_model": "gemini-3.5-flash-lite",
+        "actual_model": "gemini-3.5-flash-lite",
+        "fallback_used": false,
+        "fallback_reason": null
       },
       "classification": {
-        "requested_model": "gemini-3.6-flash",
+        "requested_model": "gemini-3.5-flash-lite",
         "actual_model": "gemini-3.5-flash-lite",
-        "fallback_used": true,
-        "fallback_reason": "quota_exceeded"
+        "fallback_used": false,
+        "fallback_reason": null
       }
     }
   }

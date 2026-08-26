@@ -5,12 +5,14 @@ Task-specific model pairs
 -------------------------
 Extraction tasks (Part 1, Part 2 date extraction) use a lightweight model
 as primary so quota is reserved for reasoning.  Reasoning tasks (Part 2 MCP
-tool selection, temporal classification) use the stronger model as primary.
-Both roles have a cross-fallback so exhausting one model's quota does not
-stall the pipeline:
+tool selection, temporal classification) also use gemini-3.5-flash-lite as
+primary — 500 RPD makes it reliably available throughout development.  No
+automatic fallback is configured for reasoning by default: a quota error on
+a reasoning call surfaces clearly rather than silently using a weaker model.
+Extraction tasks retain a cross-fallback to gemini-3.1-flash-lite:
 
     build_extraction_llm_pair()  →  (GEMINI_EXTRACTION_MODEL, GEMINI_EXTRACTION_FALLBACK_MODEL)
-    build_reasoning_llm_pair()   →  (GEMINI_REASONING_MODEL,  GEMINI_REASONING_FALLBACK_MODEL)
+    build_reasoning_llm_pair()   →  (GEMINI_REASONING_MODEL,  GEMINI_REASONING_FALLBACK_MODEL or None)
 
 Fallback is only triggered for quota / rate-limit errors (429). Validation
 failures, bad PDF extraction, or coding bugs propagate normally — falling
@@ -94,17 +96,19 @@ def build_reasoning_llm_pair() -> tuple[ChatGoogleGenerativeAI, ChatGoogleGenera
     """
     Return the LLM pair for reasoning tasks (Part 2 MCP tool selection, classification).
 
-    Primary is gemini-3.6-flash (5 RPM / 20 RPD). Fallback is
-    gemini-3.5-flash-lite — the newer lightweight model, also supports
-    function calling and structured output, so MCP tool selection and
-    temporal classification degrade gracefully.
+    Primary is gemini-3.5-flash-lite (500 RPD) — the same model used for
+    extraction but relied on here for its reasoning capability.  No automatic
+    fallback is configured by default: a quota failure on reasoning tasks
+    surfaces as a clear error rather than silently downgrading to a weaker
+    model whose classification quality is unknown.  Set
+    GEMINI_REASONING_FALLBACK_MODEL to opt into a fallback.
 
     Env vars: GEMINI_REASONING_MODEL, GEMINI_REASONING_FALLBACK_MODEL
     """
     return _build_pair(
         "GEMINI_REASONING_MODEL",
         "GEMINI_REASONING_FALLBACK_MODEL",
-        primary_default="gemini-3.6-flash",
+        primary_default="gemini-3.5-flash-lite",
         role="reasoning",
     )
 

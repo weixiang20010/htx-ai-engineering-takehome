@@ -154,19 +154,19 @@ async def run_part2(
 
     # ── Stage 2 ─ LLM temporal classification ────────────────────────────────
     logger.info("[Part2] Classifying dates against %s", REFERENCE_DATE.isoformat())
-    classification1, cls_usage1 = classify_date(extracted1.original_text, normalized1, _reasoning_llm, _reasoning_fallback)
-    classification2, cls_usage2 = classify_date(extracted36.original_text, normalized2, _reasoning_llm, _reasoning_fallback)
+    cls_result1 = classify_date(extracted1.original_text, normalized1, _reasoning_llm, _reasoning_fallback)
+    cls_result2 = classify_date(extracted36.original_text, normalized2, _reasoning_llm, _reasoning_fallback)
 
     results = [
         Part2ResultItem(
             original_text=extracted1.original_text,   # PDF is authority
             normalized_date=normalized1,              # MCP is authority
-            status=classification1.status,            # LLM is authority
+            status=cls_result1.classification.status, # LLM is authority
         ),
         Part2ResultItem(
             original_text=extracted36.original_text,
             normalized_date=normalized2,
-            status=classification2.status,
+            status=cls_result2.classification.status,
         ),
     ]
 
@@ -180,12 +180,16 @@ async def run_part2(
             mcp_tool_arguments=trace1["tool_arguments"],
             mcp_tool_result=trace1["tool_result"],
             reference_date=REFERENCE_DATE.isoformat(),
-            llm_status=str(classification1.status),
-            llm_rationale=classification1.reason,
+            temporal_interpretation=cls_result1.interpretation,
+            consistency_check_passed=cls_result1.consistency_check_passed,
+            classification_retried=cls_result1.retried,
+            llm_status=str(cls_result1.classification.status),
+            llm_rationale=cls_result1.classification.reason,
             model_usage=PerOperationModelUsage(
                 date_extraction=extract_usage1,
                 tool_selection=mcp_usage1,
-                classification=cls_usage1,
+                interpretation=cls_result1.interpretation_usage,
+                classification=cls_result1.classification_usage,
             ),
         ),
         Part2Evidence(
@@ -197,12 +201,16 @@ async def run_part2(
             mcp_tool_arguments=trace2["tool_arguments"],
             mcp_tool_result=trace2["tool_result"],
             reference_date=REFERENCE_DATE.isoformat(),
-            llm_status=str(classification2.status),
-            llm_rationale=classification2.reason,
+            temporal_interpretation=cls_result2.interpretation,
+            consistency_check_passed=cls_result2.consistency_check_passed,
+            classification_retried=cls_result2.retried,
+            llm_status=str(cls_result2.classification.status),
+            llm_rationale=cls_result2.classification.reason,
             model_usage=PerOperationModelUsage(
                 date_extraction=extract_usage36,
                 tool_selection=mcp_usage2,
-                classification=cls_usage2,
+                interpretation=cls_result2.interpretation_usage,
+                classification=cls_result2.classification_usage,
             ),
         ),
     ]
