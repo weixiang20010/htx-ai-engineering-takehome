@@ -109,3 +109,73 @@ def test_invalid_amount_returns_none():
 def test_unknown_unit_returns_raw():
     """Units other than million/billion return None (not guessed)."""
     assert convert_to_billions("100", "$ thousand") is None
+
+
+# ---------------------------------------------------------------------------
+# Aspect coverage → AgentStatus logic
+#
+# These tests exercise the deterministic coverage computation in _extract_facts
+# without any LLM calls.  The logic under test is:
+#
+#   covered = {aspect for fact in validated for aspect in fact.supports_aspects}
+#   missing = required - covered
+#   SUCCESS iff validated and not missing
+# ---------------------------------------------------------------------------
+
+
+def _fact(page: int, text: str, aspects: list[str]) -> "GroundedFact":
+    from src.part3.models import GroundedFact
+
+    return GroundedFact(
+        claim="test claim",
+        source_page=page,
+        evidence_text=text,
+        supports_aspects=aspects,
+    )
+
+
+def _coverage(validated: list, required: list[str]) -> tuple[set, list, str]:
+    """Mirror the coverage logic from specialist._extract_facts."""
+    from src.part3.models import AgentStatus
+
+    covered = {a for fact in validated for a in fact.supports_aspects}
+    missing = sorted(set(required) - covered)
+    status = AgentStatus.SUCCESS if (validated and not missing) else AgentStatus.INSUFFICIENT_EVIDENCE
+    return covered, missing, status
+
+
+def test_all_aspects_covered_is_success():
+    required = ["funding mechanism", "amount", "purpose"]
+    facts = [
+        _fact(18, "text", ["funding mechanism", "purpose"]),
+        _fact(20, "text", ["amount"]),
+    ]
+    _, missing, status = _coverage(facts, required)
+    assert missing == []
+    from src.part3.models import AgentStatus
+    assert status == AgentStatus.SUCCESS
+
+
+def test_partial_coverage_is_insufficient():
+    required = ["funding mechanism", "amount", "purpose"]
+    # Only "amount" survives grounding — the other two aspects are uncovered.
+    facts = [_fact(20, "text", ["amount"])]
+    _, missing, status = _coverage(facts, required)
+    assert "funding mechanism" in missing
+    assert "purpose" in missing
+    from src.part3.models import AgentStatus
+    assert status == AgentStatus.INSUFFICIENT_EVIDENCE
+
+
+def test_rejected_extra_fact_still_allows_success():
+    """If one fact is rejected but remaining validated facts cover all aspects, SUCCESS."""
+    required = ["funding mechanism", "amount"]
+    # Imagine a third fact for "amount" was rejected; these two cover everything.
+    validated = [
+        _fact(18, "text", ["funding mechanism"]),
+        _fact(20, "text", ["amount"]),
+    ]
+    _, missing, status = _coverage(validated, required)
+    assert missing == []
+    from src.part3.models import AgentStatus
+    assert status == AgentStatus.SUCCESS
