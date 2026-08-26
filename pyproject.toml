@@ -1,7 +1,7 @@
 [project]
 name = "htx-assessment"
 version = "0.1.0"
-description = "HTX AI Engineering Take-Home — Part 1 & 2: Document Extraction, MCP Date Normalisation & LLM Temporal Reasoning"
+description = "HTX AI Engineering Take-Home — Parts 1, 2 & 3: Document Extraction, MCP Date Normalisation, LLM Temporal Reasoning & LangGraph Multi-Agent Supervisor"
 requires-python = ">=3.14"
 dependencies = [
     "pdfplumber>=0.11.0",

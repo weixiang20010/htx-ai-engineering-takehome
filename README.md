@@ -4,6 +4,12 @@
 
 ---
 
+## My approach
+
+This solution uses LLMs only where semantic interpretation genuinely adds value and keeps deterministic operations in Python. In Parts 1 and 2, the assessment specifies exactly which pages to inspect, so I avoided adding retrieval entirely — the LLM identifies evidence and the model verifies it deterministically. Part 2 adds MCP as a tool boundary so that date normalisation (a deterministic task) stays in pure Python while Gemini handles temporal reasoning. Part 3 is the first point where the relevant pages are unknown and must be found from a question alone; that is where I introduce hybrid retrieval and a LangGraph supervisor. The progression is intentional: each part adds exactly the machinery the problem requires and no more.
+
+---
+
 ## Quick start
 
 **Prerequisites:** Python 3.14
@@ -21,8 +27,10 @@ pip install -e ".[dev]"
 cp .env.example .env
 # Edit .env — set GEMINI_API_KEY to your Google AI Studio key
 
-# 4. Run the extraction pipeline
+# 4. Run the pipelines
 python scripts/run_part1.py
+python scripts/run_part2.py
+python scripts/run_part3.py   # also builds the semantic index (requires GEMINI_API_KEY)
 ```
 
 Outputs:
@@ -31,12 +39,11 @@ Outputs:
 |------|----------|
 | `outputs/part1_result.json` | Five final extracted values |
 | `outputs/part1_evidence.json` | Per-field audit trail |
-
-Run Part 3 (LangGraph multi-agent supervisor):
-
-```bash
-python scripts/run_part3.py
-```
+| `outputs/part2_result.json` | Two normalised dates with temporal classification |
+| `outputs/part2_evidence.json` | Full audit trail including MCP tool trace |
+| `outputs/part3_result.json` | Answer for the required HTX query |
+| `outputs/part3_trace.json` | Workflow trace from the required HTX query |
+| `outputs/part3_demo_queries.json` | Results for all four demonstration queries |
 
 
 
@@ -61,20 +68,16 @@ python scripts/run_part3.py
 | `langchain` + `langchain-google-genai` | Structured output via `llm.with_structured_output(PydanticModel)` keeps LLM responses schema-validated; prompt templates are version-controlled separately from orchestration logic |
 | `mcp>=1.29.1,<2` | MCP SDK used by `FastMCP` to expose the date-normaliser over stdio. Pinned below 2.x because `langchain-mcp-adapters==0.3.1` is incompatible with the mcp 2.x API |
 | `langchain-mcp-adapters==0.3.1` | Converts MCP tool definitions into LangChain `BaseTool` objects so they can be bound to Gemini through LangChain |
+| `langgraph>=1.2.0` | Compiles the Part 3 supervisor graph; provides conditional fan-out (parallel specialist branches) and fan-in (synthesis waits for all active branches) |
+| `rank-bm25` | BM25Okapi index for lexical retrieval; no server or persistent storage required |
+| `numpy` | Cosine similarity computation over the in-memory embedding matrix |
 | `pydantic` | Runtime-validated schemas for every LLM output and final result; field-level documentation doubles as prompt guidance |
 | `python-dotenv` | Keeps secrets out of source code; standard `.env` convention |
 | `pytest` | Parametrised unit tests for all deterministic components; `@pytest.mark.integration` separates API-dependent tests |
 
 ## Parser choice — why pdfplumber
 
-The source document (`fy2024_analysis_of_revenue_and_expenditure.pdf`) contains both narrative prose and financial tables.  `pdfplumber` was selected because:
-
-- **Page-level extraction** — `page.extract_text()` and `page.extract_tables()` operate on individual pages, making it straightforward to target only the pages required.
-- **Table detection** — the built-in table extractor handles ruled tables automatically; for borderless tables a word-coordinate fallback is available.
-- **Lightweight** — adds no OCR, computer-vision, or document-intelligence overhead.
-- **Verified output** — before any parsing code was written, the raw output of `extract_text()` and `extract_tables()` was inspected for pages 5, 6, 8, and 20 to confirm which strategy is required per page.
-
-No alternative PDF library (PyMuPDF, Docling, etc.) was introduced because `pdfplumber` handled all required pages.
+I started with `pdfplumber` rather than a heavier parser because the PDF already contains machine-readable text — no OCR needed. After inspecting the required pages, I found that pages 5–6 were straightforward narrative, page 20 was extractable as a table, and page 8 had a borderless table where `extract_tables()` returned nothing. For page 8 I reconstructed the values from extracted text using a trailing-numeric-token heuristic. I kept this approach intentionally document-specific rather than introducing a general-purpose document intelligence stack for a single known file.
 
 ### What inspection revealed
 
@@ -276,19 +279,9 @@ Outputs:
 
 ## Why local MCP for date normalisation?
 
-Date parsing is a deterministic task — a given date string should always produce the same ISO output regardless of model state or temperature.  Exposing `normalize_date_value()` as a **local MCP tool** means:
+Date parsing is a deterministic task — a given date string should always produce the same ISO output. I exposed `normalize_date_value()` as a local MCP tool so that Gemini's tool call is observable: I can inspect `response.tool_calls[0]` and confirm the model actually requested the tool rather than answering from training data. The normalisation itself is pure Python wrapping `datetime.strptime`, so it is predictable and unit-testable without any API calls.
 
-1. **Gemini's tool-call is observable** — the `tool_calls` list on the response object is inspected before execution, proving the model requested the tool (not that it answered from training data).
-2. **The normalisation itself is pure Python** — no LLM involved, so the output is predictable and unit-testable without any API calls.
-3. **MCP stdio transport** — the server runs as a subprocess; no network port, no auth, no persistence.
-
----
-
-## Why deterministic normalisation, not LLM normalisation?
-
-Normalising `"16 February 2024"` → `"2024-02-16"` does not require semantic understanding. Delegating it to an LLM adds latency, API cost, and non-determinism. The MCP tool wraps `datetime.strptime` over a known set of formats derived from the source document; it raises `DateNormalizationError` for anything outside that set.
-
----
+MCP is admittedly more machinery than needed to call `datetime.strptime()` directly. I used it because Part 2 specifically asks for a local MCP implementation and I wanted the tool boundary to be explicit and inspectable. The underlying normalisation stays as a pure function so MCP remains an interface boundary rather than being mixed into business logic.
 
 ## Why LLM classification, not rule-based?
 
@@ -296,17 +289,13 @@ The distinction between **Expired** and **Ongoing** requires semantic context:
 
 > *"Estate Duty does not apply to a person who dies after 15 February 2008."*
 
-The date `2008-02-15` is before the reference date `2024-01-01`, which a simple date comparison would classify as Expired. However, the source uses the date as a threshold — "after 15 February 2008" — and does not state an end date. I therefore interpret it as an open-ended condition that includes the reference date, resulting in `Ongoing`. A regex-over-date approach cannot make this distinction. The LLM receives both `original_text` and `normalized_date` so it can reason about whether the date marks a boundary of an ongoing rule, a past event, or a future event.
+The date `2008-02-15` is before the reference date `2024-01-01`, which a simple date comparison would classify as Expired. However, the source uses the date as a threshold — "after 15 February 2008" — and states no end date. I therefore interpret it as an open-ended condition that includes the reference date, resulting in `Ongoing`. A regex-over-date approach cannot make this distinction. The LLM receives both `original_text` and `normalized_date` so it can reason about whether the date marks a boundary of an ongoing rule, a past event, or a future event.
 
----
+## Part 2 design decisions
 
-## Why is `original_text` retained in the output?
+**`original_text` in output:** The HTX schema includes `original_text` alongside `normalized_date`. Retaining the verbatim source sentence provides human-readable provenance, lets reviewers verify the classification without consulting the PDF, and gives the LLM classifier the semantic context it needs (see above).
 
-The HTX output schema includes `original_text` alongside `normalized_date`. Retaining the verbatim source sentence:
-
-- Provides human-readable provenance for each date.
-- Allows reviewers to verify the classification against the source without consulting the PDF.
-- Enables the LLM classifier to use semantic context (see above).
+**Reference date is fixed at 2024-01-01:** Specified by the assessment; not taken from the system clock. `REFERENCE_DATE = date(2024, 1, 1)` is a module-level constant in `src/part2/models.py`.
 
 ---
 
@@ -461,7 +450,7 @@ This bounded loop prevents infinite retries while still allowing the agent to re
 
 $$\text{RRF}(d) = \sum_{r \in \{BM25,\ \text{semantic}\}} \frac{1}{K + \text{rank}_r(d)}, \quad K = 60$$
 
-**Why hybrid?** Budget documents mix exact financial terminology ("Corporate Income Tax", "Operating Revenue") and natural-language prose. BM25 dominates for exact-term queries; semantic embeddings recover paraphrased or conceptual queries. Hybrid RRF is expected to outperform either method alone across the evaluation queries.
+**Why hybrid?** I compared BM25, semantic retrieval and hybrid RRF on four representative queries. Semantic retrieval already performed well on this small corpus, and hybrid RRF matched rather than exceeded its hit rate. I kept the hybrid approach because BM25 is inexpensive at this scale and provides an exact-term signal alongside semantic retrieval, but I would evaluate whether that extra complexity remains worthwhile on a larger corpus.
 
 **Semantic embedding model:** `models/gemini-embedding-001` (supported through at least May 2028). The previously used `text-embedding-004` was deprecated by Google on 14 January 2026.
 
@@ -491,7 +480,7 @@ Hit rate = fraction of known-relevant pages appearing (uniquely) in the top-8 re
 
 Corpus: 62 chunks from 37 PDF pages. Embeddings: `gemini-embedding-001` (3072-dim).
 
-**Interpretation:** BM25 alone fails on paraphrased and indirect queries (hit rates 0.33–0.50). Semantic embeddings close that gap. Hybrid RRF matches or exceeds semantic retrieval on every query, while preserving BM25's exact-term strength. The largest gain is `top_ups_endowment` (BM25 0.33 → Hybrid 1.00), driven by semantic recall of page 18 and page 20 which BM25 misses when the query wording diverges from the document's phrasing.
+**Interpretation:** BM25 performed well when the query shared exact terminology with the document, but recall dropped to 0.33–0.50 for the two broader queries. Semantic retrieval recovered more of the labelled relevant pages. In this small benchmark, hybrid RRF matched semantic retrieval rather than improving the measured hit rate. I retained RRF because adding the BM25 ranking is inexpensive for a 62-chunk in-memory corpus and provides an additional lexical signal, but this benchmark does not prove that hybrid retrieval is universally better.
 
 ### Running Part 3
 
@@ -539,4 +528,4 @@ python scripts/evaluate_part3_retrieval.py
 
 **Part 2 — temporal classification:** Classification is probabilistic because semantic interpretation is performed by an LLM, even though its inputs and allowed output values are constrained. A different model or prompt could produce a different result for ambiguous cases.
 
-**Scalability:** The pipeline processes one known document synchronously. For high-volume or asynchronous processing, bounded concurrency, durable queues, and dead-letter handling could be introduced where appropriate.
+**Scalability:** The solution is scoped to one known document. Parts 1 and 2 use mostly sequential processing, while Part 3 uses parallel specialist branches when both domains are required. A production multi-document system would need persistent indexes, bounded concurrency, durable job handling and stronger observability.
