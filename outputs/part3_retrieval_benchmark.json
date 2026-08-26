@@ -1,0 +1,1140 @@
+[
+  {
+    "query_id": "exact_terminology",
+    "query": "Corporate Income Tax Operating Revenue FY2024",
+    "description": "Exact terminology — FY2024 CIT revenue",
+    "relevant_pages": [
+      16,
+      26,
+      13
+    ],
+    "bm25_only": {
+      "top_pages": [
+        5,
+        9,
+        26,
+        27,
+        13,
+        16,
+        8,
+        24
+      ],
+      "relevant_pages_hit": [
+        13,
+        16,
+        26
+      ],
+      "hit_rate": 1.0,
+      "top_chunks": [
+        {
+          "chunk_id": "p05_1_2_operating_revenue_002",
+          "page": 5,
+          "section": "1.2 Operating Revenue",
+          "bm25_rank": 1,
+          "semantic_rank": null,
+          "rrf_score": 10.637709,
+          "text_preview": "1.2 Operating Revenue\nRevised FY2023 Operating Revenue is $104.3 billion, which is $7.6 billion (7.9%)\nhigher than the E"
+        },
+        {
+          "chunk_id": "p09_table_1_1_000",
+          "page": 9,
+          "section": "Table 1.1",
+          "bm25_rank": 2,
+          "semantic_rank": null,
+          "rrf_score": 10.211116,
+          "text_preview": "Breakdown of Government Operating Revenue in FY20231 Chart 1.1\nWithholding Tax, 2.1% Statutory Boards’ Contributions, 0."
+        },
+        {
+          "chunk_id": "p26_table_3_2a_revenue_collections_000",
+          "page": 26,
+          "section": "Table 3.2a: Revenue Collections for FY2018 to FY2024 ($ million)",
+          "bm25_rank": 3,
+          "semantic_rank": null,
+          "rrf_score": 9.87622,
+          "text_preview": "Table 3.2a: Revenue Collections for FY2018 to FY2024 ($ million)\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2022\n"
+        },
+        {
+          "chunk_id": "p27_table_3_2b_revenue_collections_000",
+          "page": 27,
+          "section": "Table 3.2b: Revenue Collections for FY2018 to FY2024 (% of GDP)1",
+          "bm25_rank": 4,
+          "semantic_rank": null,
+          "rrf_score": 9.565133,
+          "text_preview": "Table 3.2b: Revenue Collections for FY2018 to FY2024 (% of GDP)1\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2022\n"
+        },
+        {
+          "chunk_id": "p13_2_2_operating_revenue_001",
+          "page": 13,
+          "section": "2.2 Operating Revenue",
+          "bm25_rank": 5,
+          "semantic_rank": null,
+          "rrf_score": 6.865188,
+          "text_preview": "2.2 Operating Revenue\nEstimated FY2024 Operating Revenue is $108.6 billion (15.1% of GDP). This is\nan increase of $4.3 b"
+        },
+        {
+          "chunk_id": "p16_2_5_capitalisation_of_national_000",
+          "page": 16,
+          "section": "2.5 Capitalisation of Nationally Significant Infrastructure and SINGA",
+          "bm25_rank": 6,
+          "semantic_rank": null,
+          "rrf_score": 6.566306,
+          "text_preview": "Budget for FY2024 Table 2.1\nRevised E s t i m ated C hange Over\nBLANK FY2023 FY2024 Revised FY2023\nBLANK $billion $billi"
+        },
+        {
+          "chunk_id": "p08_table_1_1_000",
+          "page": 8,
+          "section": "Table 1.1",
+          "bm25_rank": 7,
+          "semantic_rank": null,
+          "rrf_score": 5.793441,
+          "text_preview": "Table 1.1\nFiscal Position in FY2022 and FY2023\nBLANK Revised FY2023\nBLANK Actual Estimated Revised Compared to\nBLANK FY2"
+        },
+        {
+          "chunk_id": "p24_table_3_1a_overall_fiscal_posi_000",
+          "page": 24,
+          "section": "Table 3.1a: Overall Fiscal Position for FY2018 to FY2024 ($ million)",
+          "bm25_rank": 8,
+          "semantic_rank": null,
+          "rrf_score": 4.933714,
+          "text_preview": "Table 3.1a: Overall Fiscal Position for FY2018 to FY2024 ($ million)\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2"
+        }
+      ]
+    },
+    "semantic_only": {
+      "top_pages": [
+        5,
+        26,
+        27,
+        16,
+        13,
+        9,
+        15,
+        24
+      ],
+      "relevant_pages_hit": [
+        13,
+        16,
+        26
+      ],
+      "hit_rate": 1.0,
+      "top_chunks": [
+        {
+          "chunk_id": "p05_1_2_operating_revenue_002",
+          "page": 5,
+          "section": "1.2 Operating Revenue",
+          "bm25_rank": null,
+          "semantic_rank": 1,
+          "rrf_score": 0.743966,
+          "text_preview": "1.2 Operating Revenue\nRevised FY2023 Operating Revenue is $104.3 billion, which is $7.6 billion (7.9%)\nhigher than the E"
+        },
+        {
+          "chunk_id": "p26_table_3_2a_revenue_collections_000",
+          "page": 26,
+          "section": "Table 3.2a: Revenue Collections for FY2018 to FY2024 ($ million)",
+          "bm25_rank": null,
+          "semantic_rank": 2,
+          "rrf_score": 0.737279,
+          "text_preview": "Table 3.2a: Revenue Collections for FY2018 to FY2024 ($ million)\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2022\n"
+        },
+        {
+          "chunk_id": "p27_table_3_2b_revenue_collections_000",
+          "page": 27,
+          "section": "Table 3.2b: Revenue Collections for FY2018 to FY2024 (% of GDP)1",
+          "bm25_rank": null,
+          "semantic_rank": 3,
+          "rrf_score": 0.732371,
+          "text_preview": "Table 3.2b: Revenue Collections for FY2018 to FY2024 (% of GDP)1\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2022\n"
+        },
+        {
+          "chunk_id": "p16_2_5_capitalisation_of_national_000",
+          "page": 16,
+          "section": "2.5 Capitalisation of Nationally Significant Infrastructure and SINGA",
+          "bm25_rank": null,
+          "semantic_rank": 4,
+          "rrf_score": 0.722069,
+          "text_preview": "Budget for FY2024 Table 2.1\nRevised E s t i m ated C hange Over\nBLANK FY2023 FY2024 Revised FY2023\nBLANK $billion $billi"
+        },
+        {
+          "chunk_id": "p13_2_2_operating_revenue_001",
+          "page": 13,
+          "section": "2.2 Operating Revenue",
+          "bm25_rank": null,
+          "semantic_rank": 5,
+          "rrf_score": 0.718092,
+          "text_preview": "2.2 Operating Revenue\nEstimated FY2024 Operating Revenue is $108.6 billion (15.1% of GDP). This is\nan increase of $4.3 b"
+        },
+        {
+          "chunk_id": "p09_table_1_1_000",
+          "page": 9,
+          "section": "Table 1.1",
+          "bm25_rank": null,
+          "semantic_rank": 6,
+          "rrf_score": 0.714837,
+          "text_preview": "Breakdown of Government Operating Revenue in FY20231 Chart 1.1\nWithholding Tax, 2.1% Statutory Boards’ Contributions, 0."
+        },
+        {
+          "chunk_id": "p15_2_4_net_investment_returns_con_001",
+          "page": 15,
+          "section": "2.4 Net Investment Returns Contribution",
+          "bm25_rank": null,
+          "semantic_rank": 7,
+          "rrf_score": 0.714288,
+          "text_preview": "2.4 Net Investment Returns Contribution\nEstimated FY2024 NIRC is $23.5 billion, which is $0.6 billion (2.6%) higher than"
+        },
+        {
+          "chunk_id": "p24_table_3_1a_overall_fiscal_posi_000",
+          "page": 24,
+          "section": "Table 3.1a: Overall Fiscal Position for FY2018 to FY2024 ($ million)",
+          "bm25_rank": null,
+          "semantic_rank": 8,
+          "rrf_score": 0.703339,
+          "text_preview": "Table 3.1a: Overall Fiscal Position for FY2018 to FY2024 ($ million)\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2"
+        }
+      ]
+    },
+    "hybrid_rrf": {
+      "top_pages": [
+        5,
+        26,
+        27,
+        9,
+        16,
+        13,
+        8,
+        24
+      ],
+      "relevant_pages_hit": [
+        13,
+        16,
+        26
+      ],
+      "hit_rate": 1.0,
+      "top_chunks": [
+        {
+          "chunk_id": "p05_1_2_operating_revenue_002",
+          "page": 5,
+          "section": "1.2 Operating Revenue",
+          "bm25_rank": 1,
+          "semantic_rank": 1,
+          "rrf_score": 0.032787,
+          "text_preview": "1.2 Operating Revenue\nRevised FY2023 Operating Revenue is $104.3 billion, which is $7.6 billion (7.9%)\nhigher than the E"
+        },
+        {
+          "chunk_id": "p26_table_3_2a_revenue_collections_000",
+          "page": 26,
+          "section": "Table 3.2a: Revenue Collections for FY2018 to FY2024 ($ million)",
+          "bm25_rank": 3,
+          "semantic_rank": 2,
+          "rrf_score": 0.032002,
+          "text_preview": "Table 3.2a: Revenue Collections for FY2018 to FY2024 ($ million)\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2022\n"
+        },
+        {
+          "chunk_id": "p27_table_3_2b_revenue_collections_000",
+          "page": 27,
+          "section": "Table 3.2b: Revenue Collections for FY2018 to FY2024 (% of GDP)1",
+          "bm25_rank": 4,
+          "semantic_rank": 3,
+          "rrf_score": 0.031498,
+          "text_preview": "Table 3.2b: Revenue Collections for FY2018 to FY2024 (% of GDP)1\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2022\n"
+        },
+        {
+          "chunk_id": "p09_table_1_1_000",
+          "page": 9,
+          "section": "Table 1.1",
+          "bm25_rank": 2,
+          "semantic_rank": 6,
+          "rrf_score": 0.031281,
+          "text_preview": "Breakdown of Government Operating Revenue in FY20231 Chart 1.1\nWithholding Tax, 2.1% Statutory Boards’ Contributions, 0."
+        },
+        {
+          "chunk_id": "p16_2_5_capitalisation_of_national_000",
+          "page": 16,
+          "section": "2.5 Capitalisation of Nationally Significant Infrastructure and SINGA",
+          "bm25_rank": 6,
+          "semantic_rank": 4,
+          "rrf_score": 0.030777,
+          "text_preview": "Budget for FY2024 Table 2.1\nRevised E s t i m ated C hange Over\nBLANK FY2023 FY2024 Revised FY2023\nBLANK $billion $billi"
+        },
+        {
+          "chunk_id": "p13_2_2_operating_revenue_001",
+          "page": 13,
+          "section": "2.2 Operating Revenue",
+          "bm25_rank": 5,
+          "semantic_rank": 5,
+          "rrf_score": 0.030769,
+          "text_preview": "2.2 Operating Revenue\nEstimated FY2024 Operating Revenue is $108.6 billion (15.1% of GDP). This is\nan increase of $4.3 b"
+        },
+        {
+          "chunk_id": "p08_table_1_1_000",
+          "page": 8,
+          "section": "Table 1.1",
+          "bm25_rank": 7,
+          "semantic_rank": 9,
+          "rrf_score": 0.029418,
+          "text_preview": "Table 1.1\nFiscal Position in FY2022 and FY2023\nBLANK Revised FY2023\nBLANK Actual Estimated Revised Compared to\nBLANK FY2"
+        },
+        {
+          "chunk_id": "p24_table_3_1a_overall_fiscal_posi_000",
+          "page": 24,
+          "section": "Table 3.1a: Overall Fiscal Position for FY2018 to FY2024 ($ million)",
+          "bm25_rank": 8,
+          "semantic_rank": 8,
+          "rrf_score": 0.029412,
+          "text_preview": "Table 3.1a: Overall Fiscal Position for FY2018 to FY2024 ($ million)\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2"
+        }
+      ]
+    }
+  },
+  {
+    "query_id": "paraphrased_revenue",
+    "query": "What are the main sources of government income?",
+    "description": "Paraphrased revenue query",
+    "relevant_pages": [
+      9,
+      13,
+      26,
+      5
+    ],
+    "bm25_only": {
+      "top_pages": [
+        14,
+        34,
+        17,
+        18,
+        13,
+        13,
+        6,
+        5
+      ],
+      "relevant_pages_hit": [
+        5,
+        13
+      ],
+      "hit_rate": 0.5,
+      "top_chunks": [
+        {
+          "chunk_id": "p14_2_3_total_expenditure_001",
+          "page": 14,
+          "section": "2.3 Total Expenditure",
+          "bm25_rank": 1,
+          "semantic_rank": null,
+          "rrf_score": 6.413176,
+          "text_preview": "The main increases over Revised FY2023 Expenditure are for\nMOT, MOH, MOE, MSF, MINDEF, MND and MinLaw (see Chart 2.1).\nM"
+        },
+        {
+          "chunk_id": "p34_table_3_8_headcount_by_ministr_001",
+          "page": 34,
+          "section": "Table 3.8: Headcount by Ministry FY2018 to FY2024",
+          "bm25_rank": 2,
+          "semantic_rank": null,
+          "rrf_score": 5.93662,
+          "text_preview": "8,105 8,014 8,412 8,285\nPrime Minister's Office2 3,106 3,541 4,002 4,315 4,772 5,499 1,225\nTrade and Industry 3,134 3,13"
+        },
+        {
+          "chunk_id": "p17_2_5_capitalisation_of_national_001",
+          "page": 17,
+          "section": "2.5 Capitalisation of Nationally Significant Infrastructure and SINGA",
+          "bm25_rank": 3,
+          "semantic_rank": null,
+          "rrf_score": 5.875633,
+          "text_preview": "oup (SNDGG), previously under Prime Minister’s\nOffice (PMO), merged with the Ministry of Communications and Information "
+        },
+        {
+          "chunk_id": "p18_2_6_special_transfers_001",
+          "page": 18,
+          "section": "2.6 Special Transfers",
+          "bm25_rank": 4,
+          "semantic_rank": null,
+          "rrf_score": 5.170904,
+          "text_preview": "The Government will top up the National Research\nFund by $1.8 billion to support Research, Innovation and Enterprise, an"
+        },
+        {
+          "chunk_id": "p13_2_2_operating_revenue_002",
+          "page": 13,
+          "section": "2.2 Operating Revenue",
+          "bm25_rank": 5,
+          "semantic_rank": null,
+          "rrf_score": 4.80218,
+          "text_preview": "Personal Income Tax\ncollections are estimated to increase by $0.5 billion (3.1%) to $18.1 billion, due\nto nominal wage g"
+        },
+        {
+          "chunk_id": "p13_2_2_operating_revenue_001",
+          "page": 13,
+          "section": "2.2 Operating Revenue",
+          "bm25_rank": 6,
+          "semantic_rank": null,
+          "rrf_score": 4.52726,
+          "text_preview": "2.2 Operating Revenue\nEstimated FY2024 Operating Revenue is $108.6 billion (15.1% of GDP). This is\nan increase of $4.3 b"
+        },
+        {
+          "chunk_id": "p06_1_2_operating_revenue_000",
+          "page": 6,
+          "section": "1.2 Operating Revenue",
+          "bm25_rank": 7,
+          "semantic_rank": null,
+          "rrf_score": 4.499519,
+          "text_preview": "Tax collections are revised to $17.5 billion, which is $0.7 billion (4.1%) higher\nthan the Estimated FY2023 figure due t"
+        },
+        {
+          "chunk_id": "p05_1_2_operating_revenue_003",
+          "page": 5,
+          "section": "1.2 Operating Revenue",
+          "bm25_rank": 8,
+          "semantic_rank": null,
+          "rrf_score": 4.34457,
+          "text_preview": "Collections from Other Taxes, which\ninclude the Foreign Worker Levy, Water Conservation Tax, Land Betterment\nCharge, and"
+        }
+      ]
+    },
+    "semantic_only": {
+      "top_pages": [
+        9,
+        26,
+        27,
+        26,
+        27,
+        6,
+        8,
+        5
+      ],
+      "relevant_pages_hit": [
+        5,
+        9,
+        26
+      ],
+      "hit_rate": 0.75,
+      "top_chunks": [
+        {
+          "chunk_id": "p09_table_1_1_000",
+          "page": 9,
+          "section": "Table 1.1",
+          "bm25_rank": null,
+          "semantic_rank": 1,
+          "rrf_score": 0.722906,
+          "text_preview": "Breakdown of Government Operating Revenue in FY20231 Chart 1.1\nWithholding Tax, 2.1% Statutory Boards’ Contributions, 0."
+        },
+        {
+          "chunk_id": "p26_table_3_2a_revenue_collections_000",
+          "page": 26,
+          "section": "Table 3.2a: Revenue Collections for FY2018 to FY2024 ($ million)",
+          "bm25_rank": null,
+          "semantic_rank": 2,
+          "rrf_score": 0.702537,
+          "text_preview": "Table 3.2a: Revenue Collections for FY2018 to FY2024 ($ million)\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2022\n"
+        },
+        {
+          "chunk_id": "p27_table_3_2b_revenue_collections_000",
+          "page": 27,
+          "section": "Table 3.2b: Revenue Collections for FY2018 to FY2024 (% of GDP)1",
+          "bm25_rank": null,
+          "semantic_rank": 3,
+          "rrf_score": 0.700025,
+          "text_preview": "Table 3.2b: Revenue Collections for FY2018 to FY2024 (% of GDP)1\nBLANK FY2023 FY2024\nFY2018 FY2019 FY2020 FY2021 FY2022\n"
+        },
+        {
+          "chunk_id": "p26_table_3_2a_revenue_collections_001",
+          "page": 26,
+          "section": "Table 3.2a: Revenue Collections for FY2018 to FY2024 ($ million)",
+          "bm25_rank": null,
+          "semantic_rank": 4,
+          "rrf_score": 0.694329,
+          "text_preview": "xes 2,623 2,419 2,133 2,226 2,163 2,596 2,837\nVehicle Quota Premium 3,616 2,865 2,297 3,218 3,763 4,664 4,725\nBetting Ta"
+        },
+        {
+          "chunk_id": "p27_table_3_2b_revenue_collections_001",
+          "page": 27,
+          "section": "Table 3.2b: Revenue Collections for FY2018 to FY2024 (% of GDP)1",
+          "bm25_rank": null,
+          "semantic_rank": 5,
+          "rrf_score": 0.690927,
+          "text_preview": "mium 0.7% 0.6% 0.5% 0.5% 0.6% 0.7% 0.7%\nBetting Taxes 0.5% 0.5% 0.3% 0.4% 0.4% 0.5% 0.5%\nStamp Duty 0.9% 0.8% 0.8% 1.1% "
+        },
+        {
+          "chunk_id": "p06_1_2_operating_revenue_000",
+          "page": 6,
+          "section": "1.2 Operating Revenue",
+          "bm25_rank": null,
+          "semantic_rank": 6,
+          "rrf_score": 0.671946,
+          "text_preview": "Tax collections are revised to $17.5 billion, which is $0.7 billion (4.1%) higher\nthan the Estimated FY2023 figure due t"
+        },
+        {
+          "chunk_id": "p08_table_1_1_000",
+          "page": 8,
+          "section": "Table 1.1",
+          "bm25_rank": null,
+          "semantic_rank": 7,
+          "rrf_score": 0.667829,
+          "text_preview": "Table 1.1\nFiscal Position in FY2022 and FY2023\nBLANK Revised FY2023\nBLANK Actual Estimated Revised Compared to\nBLANK FY2"
+        },
+        {
+          "chunk_id": "p05_1_2_operating_revenue_002",
+          "page": 5,
+          "section": "1.2 Operating Revenue",
+          "bm25_rank": null,
+          "semantic_rank": 8,
+          "rrf_score": 0.667263,
+          "text_preview": "1.2 Operating Revenue\nRevised FY2023 Operating Revenue is $104.3 billion, which is $7.6 billion (7.9%)\nhigher than the E"
+        }
+      ]
+    },
+    "hybrid_rrf": {
+      "top_pages": [
+        6,
+        13,
+        13,
+        5,
+        8,
+        14,
+        9,
+        34
+      ],
+      "relevant_pages_hit": [
+        5,
+        9,
+        13
+      ],
+      "hit_rate": 0.75,
+      "top_chunks": [
+        {
+          "chunk_id": "p06_1_2_operating_revenue_000",
+          "page": 6,
+          "section": "1.2 Operating Revenue",
+          "bm25_rank": 7,
+          "semantic_rank": 6,
+          "rrf_score": 0.030077,
+          "text_preview": "Tax collections are revised to $17.5 billion, which is $0.7 billion (4.1%) higher\nthan the Estimated FY2023 figure due t"
+        },
+        {
+          "chunk_id": "p13_2_2_operating_revenue_002",
+          "page": 13,
+          "section": "2.2 Operating Revenue",
+          "bm25_rank": 5,
+          "semantic_rank": 10,
+          "rrf_score": 0.02967,
+          "text_preview": "Personal Income Tax\ncollections are estimated to increase by $0.5 billion (3.1%) to $18.1 billion, due\nto nominal wage g"
+        },
+        {
+          "chunk_id": "p13_2_2_operating_revenue_001",
+          "page": 13,
+          "section": "2.2 Operating Revenue",
+          "bm25_rank": 6,
+          "semantic_rank": 12,
+          "rrf_score": 0.02904,
+          "text_preview": "2.2 Operating Revenue\nEstimated FY2024 Operating Revenue is $108.6 billion (15.1% of GDP). This is\nan increase of $4.3 b"
+        },
+        {
+          "chunk_id": "p05_1_2_operating_revenue_003",
+          "page": 5,
+          "section": "1.2 Operating Revenue",
+          "bm25_rank": 8,
+          "semantic_rank": 19,
+          "rrf_score": 0.027364,
+          "text_preview": "Collections from Other Taxes, which\ninclude the Foreign Worker Levy, Water Conservation Tax, Land Betterment\nCharge, and"
+        },
+        {
+          "chunk_id": "p08_table_1_1_001",
+          "page": 8,
+          "section": "Table 1.1",
+          "bm25_rank": 20,
+          "semantic_rank": 14,
+          "rrf_score": 0.026014,
+          "text_preview": ") (6.84)\nAdd:\nCAPITALISATION OF NATIONALLY SIGNIFICANT INFRASTRUCTURE 2.21 3.53 3.49 58.1 (0.9)\nLess:\nDEPRECIATION OF NA"
+        },
+        {
+          "chunk_id": "p14_2_3_total_expenditure_001",
+          "page": 14,
+          "section": "2.3 Total Expenditure",
+          "bm25_rank": 1,
+          "semantic_rank": null,
+          "rrf_score": 0.016393,
+          "text_preview": "The main increases over Revised FY2023 Expenditure are for\nMOT, MOH, MOE, MSF, MINDEF, MND and MinLaw (see Chart 2.1).\nM"
+        },
+        {
+          "chunk_id": "p09_table_1_1_000",
+          "page": 9,
+          "section": "Table 1.1",
+          "bm25_rank": null,
+          "semantic_rank": 1,
+          "rrf_score": 0.016393,
+          "text_preview": "Breakdown of Government Operating Revenue in FY20231 Chart 1.1\nWithholding Tax, 2.1% Statutory Boards’ Contributions, 0."
+        },
+        {
+          "chunk_id": "p34_table_3_8_headcount_by_ministr_001",
+          "page": 34,
+          "section": "Table 3.8: Headcount by Ministry FY2018 to FY2024",
+          "bm25_rank": 2,
+          "semantic_rank": null,
+          "rrf_score": 0.016129,
+          "text_preview": "8,105 8,014 8,412 8,285\nPrime Minister's Office2 3,106 3,541 4,002 4,315 4,772 5,499 1,225\nTrade and Industry 3,134 3,13"
+        }
+      ]
+    }
+  },
+  {
+    "query_id": "future_energy_fund",
+    "query": "How is the Future Energy Fund being financed and supported?",
+    "description": "Paraphrased Future Energy Fund / energy-transition support",
+    "relevant_pages": [
+      18,
+      20
+    ],
+    "bm25_only": {
+      "top_pages": [
+        18,
+        20,
+        18,
+        20,
+        16,
+        21,
+        5,
+        7
+      ],
+      "relevant_pages_hit": [
+        18,
+        20
+      ],
+      "hit_rate": 1.0,
+      "top_chunks": [
+        {
+          "chunk_id": "p18_2_6_special_transfers_001",
+          "page": 18,
+          "section": "2.6 Special Transfers",
+          "bm25_rank": 1,
+          "semantic_rank": null,
+          "rrf_score": 10.774783,
+          "text_preview": "The Government will top up the National Research\nFund by $1.8 billion to support Research, Innovation and Enterprise, an"
+        },
+        {
+          "chunk_id": "p20_2_5_top_ups_to_endowment_and_t_000",
+          "page": 20,
+          "section": "2.5 Top-ups to Endowment and Trust Funds",
+          "bm25_rank": 2,
+          "semantic_rank": null,
+          "rrf_score": 10.258682,
+          "text_preview": "Top-ups to Endowment and Trust Funds in FY2024 Table 2.4\nEstimated FY2024\n($ million)\nGoods and Services Tax Voucher Fun"
+        },
+        {
+          "chunk_id": "p18_2_6_special_transfers_000",
+          "page": 18,
+          "section": "2.6 Special Transfers",
+          "bm25_rank": 3,
+          "semantic_rank": null,
+          "rrf_score": 8.593999,
+          "text_preview": "2.6 Special Transfers\nSpecial Transfers to Households ($2.6 billion)\nIn addition to transfers from the Government’s Oper"
+        },
+        {
+          "chunk_id": "p20_table_2_4_000",
+          "page": 20,
+          "section": "2.5 Top-ups to Endowment and Trust Funds",
+          "bm25_rank": 4,
+          "semantic_rank": null,
+          "rrf_score": 7.992444,
+          "text_preview": "Table: Top-ups to Endowment and Trust Funds in FY2024\nUnit: $ million\nRow | Estimated FY2024\nGoods and Services Tax Vouc"
+        },
+        {
+          "chunk_id": "p16_2_5_capitalisation_of_national_000",
+          "page": 16,
+          "section": "2.5 Capitalisation of Nationally Significant Infrastructure and SINGA",
+          "bm25_rank": 5,
+          "semantic_rank": null,
+          "rrf_score": 6.385718,
+          "text_preview": "Budget for FY2024 Table 2.1\nRevised E s t i m ated C hange Over\nBLANK FY2023 FY2024 Revised FY2023\nBLANK $billion $billi"
+        },
+        {
+          "chunk_id": "p21_2_7_fiscal_impulse_001",
+          "page": 21,
+          "section": "2.7 Fiscal Impulse",
+          "bm25_rank": 6,
+          "semantic_rank": null,
+          "rrf_score": 5.81699,
+          "text_preview": "Escalation of\ngeopolitical tensions, notably the Israel-Hamas conflict and war in Ukraine,\ncould lead to renewed supply "
+        },
+        {
+          "chunk_id": "p05_1_2_operating_revenue_003",
+          "page": 5,
+          "section": "1.2 Operating Revenue",
+          "bm25_rank": 7,
+          "semantic_rank": null,
+          "rrf_score": 5.63549,
+          "text_preview": "Collections from Other Taxes, which\ninclude the Foreign Worker Levy, Water Conservation Tax, Land Betterment\nCharge, and"
+        },
+        {
+          "chunk_id": "p07_1_4_special_transfers_001",
+          "page": 7,
+          "section": "1.4 Special Transfers",
+          "bm25_rank": 8,
+          "semantic_rank": null,
+          "rrf_score": 5.58023,
+          "text_preview": "1.4 Special Transfers\nRevised FY2023 Special Transfers, including Top-ups to Endowment and Trust\nFunds, is $27.2 billion"
+        }
+      ]
+    },
+    "semantic_only": {
+      "top_pages": [
+        18,
+        20,
+        20,
+        12,
+        15,
+        11,
+        9,
+        7
+      ],
+      "relevant_pages_hit": [
+        18,
+        20
+      ],
+      "hit_rate": 1.0,
+      "top_chunks": [
+        {
+          "chunk_id": "p18_2_6_special_transfers_001",
+          "page": 18,
+          "section": "2.6 Special Transfers",
+          "bm25_rank": null,
+          "semantic_rank": 1,
+          "rrf_score": 0.689335,
+          "text_preview": "The Government will top up the National Research\nFund by $1.8 billion to support Research, Innovation and Enterprise, an"
+        },
+        {
+          "chunk_id": "p20_table_2_4_000",
+          "page": 20,
+          "section": "2.5 Top-ups to Endowment and Trust Funds",
+          "bm25_rank": null,
+          "semantic_rank": 2,
+          "rrf_score": 0.662136,
+          "text_preview": "Table: Top-ups to Endowment and Trust Funds in FY2024\nUnit: $ million\nRow | Estimated FY2024\nGoods and Services Tax Vouc"
+        },
+        {
+          "chunk_id": "p20_2_5_top_ups_to_endowment_and_t_000",
+          "page": 20,
+          "section": "2.5 Top-ups to Endowment and Trust Funds",
+          "bm25_rank": null,
+          "semantic_rank": 3,
+          "rrf_score": 0.661204,
+          "text_preview": "Top-ups to Endowment and Trust Funds in FY2024 Table 2.4\nEstimated FY2024\n($ million)\nGoods and Services Tax Voucher Fun"
+        },
+        {
+          "chunk_id": "p12_chart_1_2_000",
+          "page": 12,
+          "section": "Chart 1.2",
+          "bm25_rank": null,
+          "semantic_rank": 4,
+          "rrf_score": 0.614779,
+          "text_preview": "Spending from Endowment and Trust Funds Table 1.3\nRevised FY2023\n($ million)\nTotal Spending 9,635\nGoods and Services Tax"
+        },
+        {
+          "chunk_id": "p15_2_4_net_investment_returns_con_001",
+          "page": 15,
+          "section": "2.4 Net Investment Returns Contribution",
+          "bm25_rank": null,
+          "semantic_rank": 5,
+          "rrf_score": 0.592106,
+          "text_preview": "2.4 Net Investment Returns Contribution\nEstimated FY2024 NIRC is $23.5 billion, which is $0.6 billion (2.6%) higher than"
+        },
+        {
+          "chunk_id": "p11_chart_1_2_000",
+          "page": 11,
+          "section": "Chart 1.2",
+          "bm25_rank": null,
+          "semantic_rank": 6,
+          "rrf_score": 0.592039,
+          "text_preview": "Summary of Revised FY2023 Special Transfers1 Table 1.2\nRevised FY2023\n($ million)\nSpecial Transfers: 27,169\nSpecial Tran"
+        },
+        {
+          "chunk_id": "p09_table_1_1_000",
+          "page": 9,
+          "section": "Table 1.1",
+          "bm25_rank": null,
+          "semantic_rank": 7,
+          "rrf_score": 0.589776,
+          "text_preview": "Breakdown of Government Operating Revenue in FY20231 Chart 1.1\nWithholding Tax, 2.1% Statutory Boards’ Contributions, 0."
+        },
+        {
+          "chunk_id": "p07_1_6_spending_from_endowment_an_003",
+          "page": 7,
+          "section": "1.6 Spending from Endowment and Trust Funds",
+          "bm25_rank": null,
+          "semantic_rank": 8,
+          "rrf_score": 0.589171,
+          "text_preview": "1.6 Spending from Endowment and Trust Funds\nSpending from Government Endowment and Trust Funds is projected to be\n$9.6 b"
+        }
+      ]
+    },
+    "hybrid_rrf": {
+      "top_pages": [
+        18,
+        20,
+        20,
+        11,
+        12,
+        18,
+        7,
+        16
+      ],
+      "relevant_pages_hit": [
+        18,
+        20
+      ],
+      "hit_rate": 1.0,
+      "top_chunks": [
+        {
+          "chunk_id": "p18_2_6_special_transfers_001",
+          "page": 18,
+          "section": "2.6 Special Transfers",
+          "bm25_rank": 1,
+          "semantic_rank": 1,
+          "rrf_score": 0.032787,
+          "text_preview": "The Government will top up the National Research\nFund by $1.8 billion to support Research, Innovation and Enterprise, an"
+        },
+        {
+          "chunk_id": "p20_2_5_top_ups_to_endowment_and_t_000",
+          "page": 20,
+          "section": "2.5 Top-ups to Endowment and Trust Funds",
+          "bm25_rank": 2,
+          "semantic_rank": 3,
+          "rrf_score": 0.032002,
+          "text_preview": "Top-ups to Endowment and Trust Funds in FY2024 Table 2.4\nEstimated FY2024\n($ million)\nGoods and Services Tax Voucher Fun"
+        },
+        {
+          "chunk_id": "p20_table_2_4_000",
+          "page": 20,
+          "section": "2.5 Top-ups to Endowment and Trust Funds",
+          "bm25_rank": 4,
+          "semantic_rank": 2,
+          "rrf_score": 0.031754,
+          "text_preview": "Table: Top-ups to Endowment and Trust Funds in FY2024\nUnit: $ million\nRow | Estimated FY2024\nGoods and Services Tax Vouc"
+        },
+        {
+          "chunk_id": "p11_chart_1_2_000",
+          "page": 11,
+          "section": "Chart 1.2",
+          "bm25_rank": 10,
+          "semantic_rank": 6,
+          "rrf_score": 0.029437,
+          "text_preview": "Summary of Revised FY2023 Special Transfers1 Table 1.2\nRevised FY2023\n($ million)\nSpecial Transfers: 27,169\nSpecial Tran"
+        },
+        {
+          "chunk_id": "p12_chart_1_2_000",
+          "page": 12,
+          "section": "Chart 1.2",
+          "bm25_rank": 13,
+          "semantic_rank": 4,
+          "rrf_score": 0.029324,
+          "text_preview": "Spending from Endowment and Trust Funds Table 1.3\nRevised FY2023\n($ million)\nTotal Spending 9,635\nGoods and Services Tax"
+        },
+        {
+          "chunk_id": "p18_2_6_special_transfers_000",
+          "page": 18,
+          "section": "2.6 Special Transfers",
+          "bm25_rank": 3,
+          "semantic_rank": 16,
+          "rrf_score": 0.029031,
+          "text_preview": "2.6 Special Transfers\nSpecial Transfers to Households ($2.6 billion)\nIn addition to transfers from the Government’s Oper"
+        },
+        {
+          "chunk_id": "p07_1_4_special_transfers_001",
+          "page": 7,
+          "section": "1.4 Special Transfers",
+          "bm25_rank": 8,
+          "semantic_rank": 15,
+          "rrf_score": 0.028039,
+          "text_preview": "1.4 Special Transfers\nRevised FY2023 Special Transfers, including Top-ups to Endowment and Trust\nFunds, is $27.2 billion"
+        },
+        {
+          "chunk_id": "p16_2_5_capitalisation_of_national_001",
+          "page": 16,
+          "section": "2.5 Capitalisation of Nationally Significant Infrastructure and SINGA",
+          "bm25_rank": 12,
+          "semantic_rank": 20,
+          "rrf_score": 0.026389,
+          "text_preview": "TURE - - - -\nSINGA INTEREST COSTS AND LOAN EXPENSES6 0.23 0.40 0.18 78.6\nOVERALL FISCAL POSITION (3.57) 0.78\nNote: Figur"
+        }
+      ]
+    }
+  },
+  {
+    "query_id": "top_ups_endowment",
+    "query": "top-ups endowment trust funds Budget 2024",
+    "description": "Exact terminology — top-ups",
+    "relevant_pages": [
+      18,
+      12,
+      20
+    ],
+    "bm25_only": {
+      "top_pages": [
+        18,
+        13,
+        25,
+        24,
+        11,
+        16,
+        7,
+        8
+      ],
+      "relevant_pages_hit": [
+        18
+      ],
+      "hit_rate": 0.3333333333333333,
+      "top_chunks": [
+        {
+          "chunk_id": "p18_2_6_special_transfers_000",
+          "page": 18,
+          "section": "2.6 Special Transfers",
+          "bm25_rank": 1,
+          "semantic_rank": null,
+          "rrf_score": 8.871085,
+          "text_preview": "2.6 Special Transfers\nSpecial Transfers to Households ($2.6 billion)\nIn addition to transfers from the Government’s Oper"
+        },
+        {
+          "chunk_id": "p13_2_1_budget_for_fy2024_000",
+          "page": 13,
+          "section": "2.1 Budget for FY2024",
+          "bm25_rank": 2,
+          "semantic_rank": null,
+          "rrf_score": 7.470141,
+          "text_preview": "2.1 Budget for FY2024\nA basic deficit of $6.1 billion (0.8% of GDP) is estimated for FY2024. After\nfactoring in Top-ups "
+        },
+        {
+          "chunk_id": "p25_table_3_1b_overall_fiscal_posi_001",
+          "page": 25,
+          "section": "Table 3.1b: Overall Fiscal Position for FY2018 to FY2024 (% of GDP)1",
+          "bm25_rank": 3,
+          "semantic_rank": null,
+          "rrf_score": 6.660015,
+          "text_preview": "(10.7%) (3.1%) (2.4%) (0.8%) (0.8%)\nTop-ups to Endowment and Trust Funds 1.4% 2.6% 3.5% 0.0% 0.9% 3.5% 2.8%\nNet Investme"
+        },
+        {
+          "chunk_id": "p24_table_3_1a_overall_fiscal_posi_001",
+          "page": 24,
+          "section": "Table 3.1a: Overall Fiscal Position for FY2018 to FY2024 ($ million)",
+          "bm25_rank": 4,
+          "semantic_rank": null,
+          "rrf_score": 6.639919,
+          "text_preview": "9 1,561 33,502 6,828 2,691 2,849 2,944\nBasic Surplus / Deficit (5,774) (2,625) (52,491) (19,138) (16,532) (5,436) (6,062"
+        },
+        {
+          "chunk_id": "p11_chart_1_2_000",
+          "page": 11,
+          "section": "Chart 1.2",
+          "bm25_rank": 5,
+          "semantic_rank": null,
+          "rrf_score": 6.531681,
+          "text_preview": "Summary of Revised FY2023 Special Transfers1 Table 1.2\nRevised FY2023\n($ million)\nSpecial Transfers: 27,169\nSpecial Tran"
+        },
+        {
+          "chunk_id": "p16_2_5_capitalisation_of_national_000",
+          "page": 16,
+          "section": "2.5 Capitalisation of Nationally Significant Infrastructure and SINGA",
+          "bm25_rank": 6,
+          "semantic_rank": null,
+          "rrf_score": 5.979952,
+          "text_preview": "Budget for FY2024 Table 2.1\nRevised E s t i m ated C hange Over\nBLANK FY2023 FY2024 Revised FY2023\nBLANK $billion $billi"
+        },
+        {
+          "chunk_id": "p07_1_6_spending_from_endowment_an_003",
+          "page": 7,
+          "section": "1.6 Spending from Endowment and Trust Funds",
+          "bm25_rank": 7,
+          "semantic_rank": null,
+          "rrf_score": 5.54117,
+          "text_preview": "1.6 Spending from Endowment and Trust Funds\nSpending from Government Endowment and Trust Funds is projected to be\n$9.6 b"
+        },
+        {
+          "chunk_id": "p08_table_1_1_000",
+          "page": 8,
+          "section": "Table 1.1",
+          "bm25_rank": 8,
+          "semantic_rank": null,
+          "rrf_score": 5.293563,
+          "text_preview": "Table 1.1\nFiscal Position in FY2022 and FY2023\nBLANK Revised FY2023\nBLANK Actual Estimated Revised Compared to\nBLANK FY2"
+        }
+      ]
+    },
+    "semantic_only": {
+      "top_pages": [
+        20,
+        20,
+        18,
+        18,
+        12,
+        13,
+        7,
+        5
+      ],
+      "relevant_pages_hit": [
+        12,
+        18,
+        20
+      ],
+      "hit_rate": 1.0,
+      "top_chunks": [
+        {
+          "chunk_id": "p20_table_2_4_000",
+          "page": 20,
+          "section": "2.5 Top-ups to Endowment and Trust Funds",
+          "bm25_rank": null,
+          "semantic_rank": 1,
+          "rrf_score": 0.793605,
+          "text_preview": "Table: Top-ups to Endowment and Trust Funds in FY2024\nUnit: $ million\nRow | Estimated FY2024\nGoods and Services Tax Vouc"
+        },
+        {
+          "chunk_id": "p20_2_5_top_ups_to_endowment_and_t_000",
+          "page": 20,
+          "section": "2.5 Top-ups to Endowment and Trust Funds",
+          "bm25_rank": null,
+          "semantic_rank": 2,
+          "rrf_score": 0.77781,
+          "text_preview": "Top-ups to Endowment and Trust Funds in FY2024 Table 2.4\nEstimated FY2024\n($ million)\nGoods and Services Tax Voucher Fun"
+        },
+        {
+          "chunk_id": "p18_2_6_special_transfers_000",
+          "page": 18,
+          "section": "2.6 Special Transfers",
+          "bm25_rank": null,
+          "semantic_rank": 3,
+          "rrf_score": 0.746939,
+          "text_preview": "2.6 Special Transfers\nSpecial Transfers to Households ($2.6 billion)\nIn addition to transfers from the Government’s Oper"
+        },
+        {
+          "chunk_id": "p18_2_6_special_transfers_001",
+          "page": 18,
+          "section": "2.6 Special Transfers",
+          "bm25_rank": null,
+          "semantic_rank": 4,
+          "rrf_score": 0.734022,
+          "text_preview": "The Government will top up the National Research\nFund by $1.8 billion to support Research, Innovation and Enterprise, an"
+        },
+        {
+          "chunk_id": "p12_chart_1_2_000",
+          "page": 12,
+          "section": "Chart 1.2",
+          "bm25_rank": null,
+          "semantic_rank": 5,
+          "rrf_score": 0.733866,
+          "text_preview": "Spending from Endowment and Trust Funds Table 1.3\nRevised FY2023\n($ million)\nTotal Spending 9,635\nGoods and Services Tax"
+        },
+        {
+          "chunk_id": "p13_2_1_budget_for_fy2024_000",
+          "page": 13,
+          "section": "2.1 Budget for FY2024",
+          "bm25_rank": null,
+          "semantic_rank": 6,
+          "rrf_score": 0.727552,
+          "text_preview": "2.1 Budget for FY2024\nA basic deficit of $6.1 billion (0.8% of GDP) is estimated for FY2024. After\nfactoring in Top-ups "
+        },
+        {
+          "chunk_id": "p07_1_6_spending_from_endowment_an_003",
+          "page": 7,
+          "section": "1.6 Spending from Endowment and Trust Funds",
+          "bm25_rank": null,
+          "semantic_rank": 7,
+          "rrf_score": 0.717015,
+          "text_preview": "1.6 Spending from Endowment and Trust Funds\nSpending from Government Endowment and Trust Funds is projected to be\n$9.6 b"
+        },
+        {
+          "chunk_id": "p05_1_1_expected_overall_fiscal_po_000",
+          "page": 5,
+          "section": "1.1 Expected Overall Fiscal Position for FY2023",
+          "bm25_rank": null,
+          "semantic_rank": 8,
+          "rrf_score": 0.70028,
+          "text_preview": "1.1 Expected Overall Fiscal Position for FY2023\nThe basic deficit is revised to $5.4 billion (0.8% of GDP). After factor"
+        }
+      ]
+    },
+    "hybrid_rrf": {
+      "top_pages": [
+        18,
+        13,
+        20,
+        20,
+        7,
+        11,
+        12,
+        25
+      ],
+      "relevant_pages_hit": [
+        12,
+        18,
+        20
+      ],
+      "hit_rate": 1.0,
+      "top_chunks": [
+        {
+          "chunk_id": "p18_2_6_special_transfers_000",
+          "page": 18,
+          "section": "2.6 Special Transfers",
+          "bm25_rank": 1,
+          "semantic_rank": 3,
+          "rrf_score": 0.032266,
+          "text_preview": "2.6 Special Transfers\nSpecial Transfers to Households ($2.6 billion)\nIn addition to transfers from the Government’s Oper"
+        },
+        {
+          "chunk_id": "p13_2_1_budget_for_fy2024_000",
+          "page": 13,
+          "section": "2.1 Budget for FY2024",
+          "bm25_rank": 2,
+          "semantic_rank": 6,
+          "rrf_score": 0.031281,
+          "text_preview": "2.1 Budget for FY2024\nA basic deficit of $6.1 billion (0.8% of GDP) is estimated for FY2024. After\nfactoring in Top-ups "
+        },
+        {
+          "chunk_id": "p20_2_5_top_ups_to_endowment_and_t_000",
+          "page": 20,
+          "section": "2.5 Top-ups to Endowment and Trust Funds",
+          "bm25_rank": 9,
+          "semantic_rank": 2,
+          "rrf_score": 0.030622,
+          "text_preview": "Top-ups to Endowment and Trust Funds in FY2024 Table 2.4\nEstimated FY2024\n($ million)\nGoods and Services Tax Voucher Fun"
+        },
+        {
+          "chunk_id": "p20_table_2_4_000",
+          "page": 20,
+          "section": "2.5 Top-ups to Endowment and Trust Funds",
+          "bm25_rank": 14,
+          "semantic_rank": 1,
+          "rrf_score": 0.029907,
+          "text_preview": "Table: Top-ups to Endowment and Trust Funds in FY2024\nUnit: $ million\nRow | Estimated FY2024\nGoods and Services Tax Vouc"
+        },
+        {
+          "chunk_id": "p07_1_6_spending_from_endowment_an_003",
+          "page": 7,
+          "section": "1.6 Spending from Endowment and Trust Funds",
+          "bm25_rank": 7,
+          "semantic_rank": 7,
+          "rrf_score": 0.029851,
+          "text_preview": "1.6 Spending from Endowment and Trust Funds\nSpending from Government Endowment and Trust Funds is projected to be\n$9.6 b"
+        },
+        {
+          "chunk_id": "p11_chart_1_2_000",
+          "page": 11,
+          "section": "Chart 1.2",
+          "bm25_rank": 5,
+          "semantic_rank": 10,
+          "rrf_score": 0.02967,
+          "text_preview": "Summary of Revised FY2023 Special Transfers1 Table 1.2\nRevised FY2023\n($ million)\nSpecial Transfers: 27,169\nSpecial Tran"
+        },
+        {
+          "chunk_id": "p12_chart_1_2_000",
+          "page": 12,
+          "section": "Chart 1.2",
+          "bm25_rank": 11,
+          "semantic_rank": 5,
+          "rrf_score": 0.029469,
+          "text_preview": "Spending from Endowment and Trust Funds Table 1.3\nRevised FY2023\n($ million)\nTotal Spending 9,635\nGoods and Services Tax"
+        },
+        {
+          "chunk_id": "p25_table_3_1b_overall_fiscal_posi_001",
+          "page": 25,
+          "section": "Table 3.1b: Overall Fiscal Position for FY2018 to FY2024 (% of GDP)1",
+          "bm25_rank": 3,
+          "semantic_rank": 14,
+          "rrf_score": 0.029387,
+          "text_preview": "(10.7%) (3.1%) (2.4%) (0.8%) (0.8%)\nTop-ups to Endowment and Trust Funds 1.4% 2.6% 3.5% 0.0% 0.9% 3.5% 2.8%\nNet Investme"
+        }
+      ]
+    }
+  }
+]
