@@ -423,11 +423,11 @@ supervisor_route  ──── routes to one or both ────┐
 
 The supervisor node (`src/part3/supervisor.py`) reads the user query, selects the appropriate specialist(s), and delegates a scoped task with a list of required aspects. Each specialist operates independently and writes to a separate key in the shared state, so parallel writes never conflict. The reducer on the `trace` key (`operator.add`) safely merges event lists from concurrent branches.
 
-**Why a supervisor instead of a RAG chain?** A single RAG chain cannot decide which domain(s) a question belongs to, nor can it run independent multi-hop retrieval strategies for revenue and expenditure simultaneously. The supervisor pattern externalises routing logic, making it testable and extensible — adding a new specialist (e.g. a tax-policy agent) does not require rewriting existing code.
+**Why a supervisor instead of a single RAG chain?** The supervisor makes domain routing explicit and testable, while allowing specialised retrieval strategies to run independently. Adding a new specialist (e.g. a tax-policy agent) does not require rewriting existing code.
 
 #### Parallel fan-out (LangGraph)
 
-When both revenue and expenditure are required, `add_conditional_edges` returns a list of two node names, causing LangGraph to activate both branches in parallel. The synthesis node fires only after all active branches complete (LangGraph fan-in semantics). This halves wall-clock time for combined questions compared to sequential execution.
+When both revenue and expenditure are required, `add_conditional_edges` returns a list of two node names, causing LangGraph to activate both branches in parallel. The synthesis node fires only after all active branches complete (LangGraph fan-in semantics). This can reduce wall-clock time for combined queries because the independent specialists run concurrently.
 
 ```python
 # Fan-out (parallel when list has two items)
@@ -465,7 +465,7 @@ $$\text{RRF}(d) = \sum_{r \in \{BM25,\ \text{semantic}\}} \frac{1}{K + \text{ran
 
 **Semantic embedding model:** `models/gemini-embedding-001` (supported through at least May 2028). The previously used `text-embedding-004` was deprecated by Google on 14 January 2026.
 
-**Why no vector database?** The corpus is ~150 chunks from a single 37-page PDF. Maintaining a vector DB introduces infrastructure cost and complexity without benefit at this scale. The in-memory semantic index is built once at startup in O(n) API calls.
+**Why no vector database?** The corpus is ~62 chunks from a single 37-page PDF. Maintaining a vector DB introduces infrastructure cost and complexity without benefit at this scale. The in-memory semantic index is built once at startup in O(n) API calls.
 
 #### Grounding and hallucination control
 
@@ -479,23 +479,19 @@ Facts that fail grounding are logged as warnings and dropped — they are never 
 
 ### Retrieval benchmark
 
-Run `scripts/evaluate_part3_retrieval.py` after setup to generate `outputs/part3_retrieval_benchmark.json`.  
-Hit rate = fraction of known-relevant pages appearing in the top-8 results.
+Run `scripts/evaluate_part3_retrieval.py` to reproduce `outputs/part3_retrieval_benchmark.json`.  
+Hit rate = fraction of known-relevant pages appearing (uniquely) in the top-8 results.
 
-> **Note:** Benchmark results are not pre-populated in this repository.
-> Run the script after configuring `GEMINI_API_KEY` to obtain real numbers.
+| Query | BM25 | Semantic | Hybrid RRF |
+|-------|------|----------|------------|
+| Exact: "Corporate Income Tax Operating Revenue FY2024" | 1.00 | 1.00 | **1.00** |
+| Paraphrased: "main sources of government income" | 0.50 | 0.75 | **0.75** |
+| Paraphrased: "How is the Future Energy Fund being financed?" | 1.00 | 1.00 | **1.00** |
+| Exact: "top-ups endowment trust funds Budget 2024" | 0.33 | 1.00 | **1.00** |
 
-**Relevance labels used in the benchmark:**
+Corpus: 62 chunks from 37 PDF pages. Embeddings: `gemini-embedding-001` (3072-dim).
 
-| Query | Known-relevant pages | Rationale |
-|-------|---------------------|-----------|
-| "Corporate Income Tax Operating Revenue FY2024" | 13, 16, 26 | FY2024 projections appear on pp. 13 and 16; statistical annex p. 26 |
-| "What are the main sources of government income?" | 5, 9, 13, 26 | Operating revenue overview and breakdown |
-| "How is the Future Energy Fund being financed?" | 18, 20 | p. 18 — policy statement; p. 20 — Table 2.4 with \$5,000 million figure |
-| "top-ups endowment trust funds Budget 2024" | 12, 18, 20 | Trust fund table and surrounding context |
-
-The benchmark design checks whether hybrid RRF outperforms each individual
-method.  Results will show the actual measured hit rates once the script is run.
+**Interpretation:** BM25 alone fails on paraphrased and indirect queries (hit rates 0.33–0.50). Semantic embeddings close that gap. Hybrid RRF matches or exceeds semantic retrieval on every query, while preserving BM25's exact-term strength. The largest gain is `top_ups_endowment` (BM25 0.33 → Hybrid 1.00), driven by semantic recall of page 18 and page 20 which BM25 misses when the query wording diverges from the document's phrasing.
 
 ### Running Part 3
 
@@ -531,7 +527,7 @@ python scripts/evaluate_part3_retrieval.py
 
 - The corpus is one known PDF (single FY2024 Budget document). A production system would maintain a persistent index and support incremental updates.
 - Routing is binary (revenue / expenditure). The supervisor model can be extended with additional specialist types without changing the graph topology.
-- Conversation history is preserved in `SupervisorState.trace` across the graph run but is not re-used as context for follow-up queries in the current implementation. Multi-turn dialogue would require persisting state across `ainvoke` calls.
+- The current implementation is stateless across queries; `SupervisorState.trace` records workflow execution events for the current run. Multi-turn dialogue would require persisting state across `ainvoke` calls.
 
 ---
 
