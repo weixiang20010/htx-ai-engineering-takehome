@@ -131,15 +131,22 @@ Role context: {role_prompt}
 
 Delegated task: {delegated_task}
 
+Required aspects that must be covered:
+{required_aspects}
+
 For each relevant fact:
-  claim         — State the fact clearly and concisely.
-  source_page   — The page number from the source document.
-  evidence_text — Copy the EXACT verbatim sentence or line from the evidence that
-                  supports the claim. Do not paraphrase.
-  amount_text   — If the fact involves a monetary or numerical amount, copy the
-                  exact amount string as it appears (e.g. "5,000" or "28.4").
-  source_unit   — If a unit is stated near the amount (e.g. "$ million", "$ billion"),
-                  copy it exactly.
+  claim            — State the fact clearly and concisely.
+  source_page      — The page number from the source document.
+  evidence_text    — Copy the EXACT verbatim sentence or line from the evidence that
+                     supports the claim. Do not paraphrase.
+  amount_text      — If the fact involves a monetary or numerical amount, copy the
+                     exact amount string as it appears (e.g. "5,000" or "28.4").
+  source_unit      — If a unit is stated near the amount (e.g. "$ million", "$ billion"),
+                     copy it exactly.
+  supports_aspects — List which of the required aspects above this fact directly
+                     addresses. Use the exact wording from the required aspects list.
+                     May contain one or more aspects. Never include aspects not in
+                     the required list.
 
 Rules:
 - Use ONLY information present in the supplied evidence.

@@ -320,6 +320,7 @@ async def _extract_facts(
         }
 
     evidence_text = _build_evidence_text(state["evidence_pool"])
+    aspects_list = "\n".join(f"  - {a}" for a in state["required_aspects"])
 
     result, _ = await ainvoke_with_fallback(
         lambda llm: FACT_EXTRACTION_PROMPT
@@ -328,10 +329,13 @@ async def _extract_facts(
             "role_prompt": state["role_prompt"],
             "delegated_task": state["delegated_task"],
             "evidence_text": evidence_text,
+            "required_aspects": aspects_list,
         },
         extraction_llm,
         extraction_fallback,
     )
+
+    required = set(state["required_aspects"])
 
     # Deterministic grounding validation — drop facts that cannot be verified.
     source_chunks: list[DocumentChunk] = [rc.chunk for rc in state["evidence_pool"]]
@@ -339,6 +343,10 @@ async def _extract_facts(
     for fact in result.facts:
         try:
             validate_grounded_fact(fact, source_chunks)
+            # Strip supports_aspects values that are not in required_aspects.
+            fact.supports_aspects = [
+                a for a in fact.supports_aspects if a in required
+            ]
             validated.append(fact)
         except ExtractionValidationError as exc:
             logger.warning(
@@ -348,9 +356,15 @@ async def _extract_facts(
                 exc,
             )
 
-    # SUCCESS requires at least one validated grounded fact; the LLM evidence
-    # assessment alone is insufficient because grounding may reject all facts.
-    if validated:
+    # SUCCESS requires validated facts that collectively cover every required aspect.
+    covered = {
+        aspect
+        for fact in validated
+        for aspect in fact.supports_aspects
+    }
+    missing_aspects = sorted(required - covered)
+
+    if validated and not missing_aspects:
         status = AgentStatus.SUCCESS
     else:
         status = AgentStatus.INSUFFICIENT_EVIDENCE
@@ -361,6 +375,8 @@ async def _extract_facts(
         {
             "facts_extracted": len(result.facts),
             "facts_validated": len(validated),
+            "covered_aspects": sorted(covered),
+            "missing_aspects": missing_aspects,
             "status": status,
             "stop_reason": stop,
         },
@@ -370,6 +386,8 @@ async def _extract_facts(
     return {
         "status": status,
         "grounded_facts": validated,
+        "supported_aspects": sorted(covered),
+        "missing_aspects": missing_aspects,
         # summary is from the LLM and is not grounded; kept for audit only.
         # synthesis reads grounded_facts directly and does not use this field.
         "summary": result.summary if validated else None,

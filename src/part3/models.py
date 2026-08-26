@@ -95,6 +95,8 @@ class GroundedFact(BaseModel):
     evidence_text: str
     amount_text: str | None = None
     source_unit: str | None = None
+    # Subset of the delegated required_aspects this fact covers.
+    supports_aspects: list[str] = Field(default_factory=list)
 
 
 class GroundedFactsResult(BaseModel):
